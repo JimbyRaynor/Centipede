@@ -22,6 +22,10 @@ class Spriteobj:
         self.xblock = self.xblock + self.dx
         self.yblock = self.yblock + self.dy
         self.canvas.move(self.sprite,self.dx*self.size,self.dy*self.size)
+    def goto(self,xblock, yblock):
+        self.xblock = xblock
+        self.yblock = yblock 
+        self.canvas.coords(self.sprite,(xblock+0.5)*self.size,(yblock+0.5)*self.size)
 
         
 mainwin = Tk(className = "Centipede")
@@ -68,15 +72,19 @@ def createplayfield():
  
 
 def movebody():
-    setgrid(cbody.xblock,cbody.yblock,0)
-    if getgrid(cbody.xblock+cbody.dx,cbody.yblock+cbody.dy) == 0:
-       cbody.move()
-    else: # go down and reverse direction
-       olddx =  cbody.dx
-       cbody.dx, cbody.dy = 0,1
-       cbody.move()
-       cbody.dx, cbody.dy = -olddx, 0
-    setgrid(cbody.xblock,cbody.yblock,1)
+    for cbody in centipede:
+      setgrid(cbody.xblock,cbody.yblock,0)
+      if getgrid(cbody.xblock+cbody.dx,cbody.yblock+cbody.dy) == 0:
+         cbody.move()
+      else: # go down and reverse direction
+         olddx =  cbody.dx
+         cbody.dx, cbody.dy = 0,1
+         cbody.move()
+         cbody.dx, cbody.dy = -olddx, 0
+      if cbody.yblock > 29:
+         cbody.goto(1,24)
+         cbody.dx = 1 
+      setgrid(cbody.xblock,cbody.yblock,1)
 
 def timerupdate():
     movebody()
@@ -84,14 +92,11 @@ def timerupdate():
 
 playfield = []
 createplayfield()
-cbody = putblock(1,1,"body.png",dx=1,dy=0)
+
+centipede = [] 
+for i in range(10,0,-1): # count backwards
+    centipede.append(putblock(i,1,"body.png",dx=1,dy=0))
+
 
 timerupdate()
 mainwin.mainloop()
-
-
-
-
-
-
-
