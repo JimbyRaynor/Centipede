@@ -9,8 +9,8 @@ os.chdir(current_script_directory)
 SpriteWidth = 20 # height and width of sprites. Every sprite has this size. This is the "block" size
 class Spriteobj:
     def __init__(self, canvas,fup="",fdown="",fright="",fleft="",xblock=0,yblock=0,dx=0,dy=0,size=20):
-        self.xblock = xblock # number of blocks (sprites) from left of screen 
-        self.yblock = yblock # number of blocks (sprites) down from top of screen
+        self.xblock = xblock # number of blocks (sprites) from left of screen # col
+        self.yblock = yblock # number of blocks (sprites) down from top of screen # row
         self.size = size
         self.dx = dx # 0,1,-1
         self.dy = dy # 0,1,-1
@@ -44,13 +44,13 @@ printscr("Centipede",784/2,10)
 def creatematrix(rows,cols):
     return [[0 for i in range(cols)] for j in range(rows)]
 
-grid = creatematrix(100,100)
+grid = creatematrix(100,100)   # rows, columns
 
 def setgrid(x,y,gtype):
-    grid[y][x] = gtype
+    grid[y][x] = gtype # matrices refer to y (row number) first!
 
 def getgrid(x,y):
-    return grid[y][x]
+    return grid[y][x] # matrices refer to y (row number) first!
 
 def putblock(x,y,stype,dx=0,dy=0):
     part = Spriteobj(canvas1,fup=stype,xblock=x,yblock=y,size=SpriteWidth,dx=dx,dy=dy)
@@ -81,8 +81,9 @@ def movebody():
          cbody.dx, cbody.dy = 0,1
          cbody.move()
          cbody.dx, cbody.dy = -olddx, 0
+         # remember to erase block if there is a block here
       if cbody.yblock > 29:
-         cbody.goto(1,24)
+         cbody.goto(1,1)
          cbody.dx = 1 
       setgrid(cbody.xblock,cbody.yblock,1)
 
