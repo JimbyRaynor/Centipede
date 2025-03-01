@@ -2,9 +2,18 @@ from tkinter import *
 import random
 import os
 
-# for loading files (.png), set current directory = location of this python script
+# make centipede longer to increase difficulty
+
+# make gun + bullet
+# keyboard input wasd
+# split centipede in two if hit (remove the centipede block that is hit with the bullet)
+# make score
+
+# for loading files (.png), set current directory = location of this python script (needed for Linux)
 current_script_directory = os.path.dirname(os.path.abspath(__file__))
 os.chdir(current_script_directory)
+
+
 
 SpriteWidth = 20 # height and width of sprites. Every sprite has this size. This is the "block" size
 class Spriteobj:
@@ -12,8 +21,8 @@ class Spriteobj:
         self.xblock = xblock # number of blocks (sprites) from left of screen # col
         self.yblock = yblock # number of blocks (sprites) down from top of screen # row
         self.size = size
-        self.dx = dx # 0,1,-1
-        self.dy = dy # 0,1,-1
+        self.dx = dx # 0,1,-1   dx = 1 means move one block right
+        self.dy = dy # 0,1,-1   dy = 1 means move one block down
         self.canvas = canvas
         self.imageup = PhotoImage(file=fup)
         self.sprite = canvas.create_image(0,0,image=self.imageup)
@@ -26,6 +35,8 @@ class Spriteobj:
         self.xblock = xblock
         self.yblock = yblock 
         self.canvas.coords(self.sprite,(xblock+0.5)*self.size,(yblock+0.5)*self.size)
+    def undraw(self):
+        self.canvas.delete(self.sprite)
 
         
 mainwin = Tk(className = "Centipede")
@@ -53,10 +64,16 @@ def getgrid(x,y):
     return grid[y][x] # matrices refer to y (row number) first!
 
 def putblock(x,y,stype,dx=0,dy=0):
-    part = Spriteobj(canvas1,fup=stype,xblock=x,yblock=y,size=SpriteWidth,dx=dx,dy=dy)
-    playfield.append(part)
-    grid[y][x] = 1
-    return part
+    block = Spriteobj(canvas1,fup=stype,xblock=x,yblock=y,size=SpriteWidth,dx=dx,dy=dy)
+    playfield.append(block)  # to stop garbage collector removing block!
+    setgrid(x,y,1)
+    return block
+
+def getblock(x,y):
+    for block in playfield:
+        if (block.xblock == x) and (block.yblock == y):
+            return block
+    return -1
 
 def createplayfield():
     for i in range(40):
@@ -79,9 +96,12 @@ def movebody():
       else: # go down and reverse direction
          olddx =  cbody.dx
          cbody.dx, cbody.dy = 0,1
+         myblock = getblock(cbody.xblock+cbody.dx, cbody.yblock+cbody.dy) 
+         if myblock != -1:  # okay to check since (if found) myblock does not have type <int> (and so is not -1)
+             myblock.undraw()
+             playfield.remove(myblock)
          cbody.move()
          cbody.dx, cbody.dy = -olddx, 0
-         # remember to erase block if there is a block here
       if cbody.yblock > 29:
          cbody.goto(1,1)
          cbody.dx = 1 
@@ -91,13 +111,50 @@ def timerupdate():
     movebody()
     mainwin.after(300,timerupdate)
 
+def shiptimer():
+    #print(keys["w"])
+    if keys["w"]:
+        ship.dy = -1
+        ship.dx = 0
+    elif keys["d"]:
+        ship.dx = 1
+        ship.dy = 0
+    elif keys["a"]:
+        ship.dx = -1
+        ship.dy = 0
+    elif keys["s"]:
+        ship.dy = 1
+        ship.dx = 0
+    else:
+        ship.dx = 0
+        ship.dy = 0
+        #print("stopping")
+    ship.move()
+    mainwin.after(30,shiptimer)
+
 playfield = []
 createplayfield()
 
 centipede = [] 
-for i in range(10,0,-1): # count backwards
-    centipede.append(putblock(i,1,"body.png",dx=1,dy=0))
+for i in range(8,0,-1): # count backwards
+    centipede.append(putblock(i,1,"bodyblue.png",dx=1,dy=0))
 
+ship = putblock(20,29,"ship.png",dx=0,dy=0)
+
+keys = {"w": False, "a": False, "s": False, "d": False}
+
+def mykey(event):
+    if event.keysym in keys:
+        keys[event.keysym] = True
+
+def mykey_release(event):
+    if event.keysym in keys:
+        keys[event.keysym] = False
+
+mainwin.bind("<KeyPress>", mykey)
+mainwin.bind("<KeyRelease>", mykey_release)
+ 
 
 timerupdate()
+shiptimer()
 mainwin.mainloop()
