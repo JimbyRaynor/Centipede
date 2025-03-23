@@ -2,17 +2,16 @@ from tkinter import *
 import random
 import os
 
-# make centipede longer to increase difficulty
+# make centipede longer to increase difficulty. Do not make faster
 # split centipede in two if hit (remove the centipede block that is hit with the bullet)
-# make score
+# make score in LED first 
 
 # for loading files (.png), set current directory = location of this python script (needed for Linux)
 current_script_directory = os.path.dirname(os.path.abspath(__file__))
 os.chdir(current_script_directory)
 
-
-
 SpriteWidth = 20 # height and width of sprites. Every sprite has this size. This is the "block" size
+
 class Spriteobj:
     def __init__(self, canvas,fup="",fdown="",fright="",fleft="",xblock=0,yblock=0,dx=0,dy=0,size=20):
         self.xblock = xblock # number of blocks (sprites) from left of screen # col
@@ -105,14 +104,19 @@ def movebody():
          cbody.dx = 1 
       setgrid(cbody.xblock,cbody.yblock,1)
 
-def timerupdate():
+def centipedetimer():
     movebody()
-    mainwin.after(300,timerupdate)
+    mainwin.after(300,centipedetimer)
 
 def bullettimer():
     for bullet in bullets:
       bullet.move()
-    mainwin.after(20,bullettimer)    
+    mainwin.after(20,bullettimer)  
+
+def shiptimer():
+    if getgrid(ship.xblock+ship.dx,ship.yblock+ship.dy) == 0:
+       ship.move()
+    mainwin.after(150,shiptimer)  
 
 def reload():
     ship.canfire = True
@@ -141,10 +145,7 @@ def keytimer():
         ship.dy = 0
     mainwin.after(10,keytimer)
 
-def shiptimer():
-    if getgrid(ship.xblock+ship.dx,ship.yblock+ship.dy) == 0:
-       ship.move()
-    mainwin.after(100,shiptimer)
+
 
 playfield = []
 createplayfield()
@@ -171,7 +172,7 @@ def mykey_release(event):
 mainwin.bind("<KeyPress>", mykey)
 mainwin.bind("<KeyRelease>", mykey_release)
 
-timerupdate()
+centipedetimer()
 shiptimer()
 bullettimer()
 keytimer()
