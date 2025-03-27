@@ -1,6 +1,16 @@
 from tkinter import *
 import random
 import os
+import sys
+
+# to import LED
+two_levels_up = os.path.abspath(os.path.join('..', '..'))
+sys.path.insert(0, "/home/deck/Documents")
+
+score = 0
+
+
+import LEDlib
 
 # make centipede longer to increase difficulty. Do not make faster
 # split centipede in two if hit (remove the centipede block that is hit with the bullet)
@@ -122,6 +132,7 @@ def reload():
     ship.canfire = True
 
 def keytimer():
+    global score
     if keys["w"]:
         ship.dy = -1
         ship.dx = 0
@@ -139,6 +150,9 @@ def keytimer():
          bullet = putblock(ship.xblock,ship.yblock-1,"bullet.png",dx=0,dy=-1)
          bullets.append(bullet)
          ship.canfire = False;
+         LEDlib.Erasepoints(canvas1,LEDscore)
+         score = score + 1
+         LEDlib.ShowScore(canvas1,200,30,score, LEDscore)
          mainwin.after(200,reload)
     else:
         ship.dx = 0
@@ -172,8 +186,11 @@ def mykey_release(event):
 mainwin.bind("<KeyPress>", mykey)
 mainwin.bind("<KeyRelease>", mykey_release)
 
+LEDscore = []
+
 centipedetimer()
 shiptimer()
 bullettimer()
 keytimer()
+LEDlib.ShowScore(canvas1,200,30,score, LEDscore)
 mainwin.mainloop()
