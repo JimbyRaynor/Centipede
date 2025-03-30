@@ -8,12 +8,14 @@ two_levels_up = os.path.abspath(os.path.join('..', '..'))
 sys.path.insert(0, "/home/deck/Documents")
 
 score = 0
-
+centipedelength = 30
 
 import LEDlib
 
 # make centipede longer to increase difficulty. Do not make faster
 # split centipede in two if hit (remove the centipede block that is hit with the bullet)
+#   ->> no need to make new centipede just force a block there.
+                 #  is that what happens in the real centipede?
 # make score in LED first 
 
 # for loading files (.png), set current directory = location of this python script (needed for Linux)
@@ -88,6 +90,9 @@ def getblock(x,y):
             return block
     return -1
 
+def getblocknext(gameobj):
+    return getblock(gameobj.xblock+gameobj.dx,gameobj.yblock+gameobj.dy)
+
 def createplayfield():
     for i in range(40):
         putblock(i,0,"body.png",gridtype=1)
@@ -109,7 +114,7 @@ def movebody():
       else: # go down and reverse direction
          olddx =  cbody.dx
          cbody.dx, cbody.dy = 0,1
-         myblock = getblock(cbody.xblock+cbody.dx, cbody.yblock+cbody.dy) 
+         myblock = getblocknext(cbody) 
          if myblock != -1:  # okay to check since (if found) myblock does not have type <int> (and so is not -1)
              myblock.undraw()
              playfield.remove(myblock)
@@ -118,26 +123,40 @@ def movebody():
       if cbody.yblock > 29:
          cbody.goto(1,1)
          cbody.dx = 1 
-      setgrid(cbody.xblock,cbody.yblock,1)
+      setgrid(cbody.xblock,cbody.yblock,2)
 
 def centipedetimer():
     movebody()
     mainwin.after(300,centipedetimer)
 
 def removeblocknext(gameobj):
-    myblock = getblock(gameobj.xblock+gameobj.dx, gameobj.yblock+gameobj.dy) 
+    myblock = getblocknext(gameobj) 
     if myblock != -1:
         myblock.undraw()
         playfield.remove(myblock)
         setgridnext(gameobj,0) 
+
+def addtoscore(amount):
+    global LEDscore, score
+    LEDlib.Erasepoints(canvas1,LEDscore)
+    LEDscore = []
+    score = score + amount
+    LEDlib.ShowScore(canvas1,200,30,score, LEDscore)
 
 def bullettimer():
     for bullet in bullets.copy():
       if (getgridnext(bullet) == 0) and (bullet.yblock > 0):
          bullet.move()
       else:
-         if getgridnext(bullet) == 1:
-              removeblocknext(bullet) 
+         if getgridnext(bullet) == 1: # hit block
+              removeblocknext(bullet)
+              addtoscore(1)
+         if getgridnext(bullet) == 2: # hit centipede
+              c = getblocknext(bullet)
+              centipede.remove(c)
+              removeblocknext(bullet) # this will remove centipede part from playfield
+              putblock(bullet.xblock+bullet.dx,bullet.yblock+bullet.dy,"body.png",gridtype=1)
+              addtoscore(10)     
          bullet.undraw()
          bullets.remove(bullet)
     mainwin.after(30,bullettimer)  
@@ -157,7 +176,7 @@ playfield = []
 createplayfield()
 
 centipede = [] 
-for i in range(8,0,-1): # count backwards
+for i in range(centipedelength,0,-1): # count backwards
     centipede.append(putblock(i,1,"bodyblue.png",dx=1,dy=0))
 
 bullets = []
@@ -182,14 +201,10 @@ def mykey(event):
         ship.dx = 0
     elif key == "space":
         if ship.canfire:
-         bullet = putblock(ship.xblock,ship.yblock-1,"bullet.png",dx=0,dy=-1)
-         bullets.append(bullet)
-         ship.canfire = False;
-         LEDlib.Erasepoints(canvas1,LEDscore)
-         LEDscore = []
-         score = score + 1
-         LEDlib.ShowScore(canvas1,200,30,score, LEDscore)
-         mainwin.after(200,reload)
+           bullet = putblock(ship.xblock,ship.yblock-1,"bullet.png",dx=0,dy=-1)
+           bullets.append(bullet)
+           ship.canfire = False;
+           mainwin.after(200,reload)
 
 mainwin.bind("<KeyPress>", mykey)
 
