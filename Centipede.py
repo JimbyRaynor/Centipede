@@ -70,6 +70,12 @@ def setgrid(x,y,gtype):
 def getgrid(x,y):
     return grid[y][x] # matrices refer to y (row number) first!
 
+def getgridnext(gameobj):
+    return getgrid(gameobj.xblock+gameobj.dx,gameobj.yblock+gameobj.dy)
+
+def setgridnext(gameobj,gtype):
+    setgrid(gameobj.xblock+gameobj.dx,gameobj.yblock+gameobj.dy,gtype)
+
 def putblock(x,y,stype,dx=0,dy=0,gridtype=0):
     block = Spriteobj(canvas1,fup=stype,xblock=x,yblock=y,size=SpriteWidth,dx=dx,dy=dy)
     playfield.append(block)  # to stop garbage collector removing block!
@@ -98,7 +104,7 @@ def createplayfield():
 def movebody():
     for cbody in centipede:
       setgrid(cbody.xblock,cbody.yblock,0)
-      if getgrid(cbody.xblock+cbody.dx,cbody.yblock+cbody.dy) == 0:
+      if getgridnext(cbody) == 0:
          cbody.move()
       else: # go down and reverse direction
          olddx =  cbody.dx
@@ -118,47 +124,33 @@ def centipedetimer():
     movebody()
     mainwin.after(300,centipedetimer)
 
+def removeblocknext(gameobj):
+    myblock = getblock(gameobj.xblock+gameobj.dx, gameobj.yblock+gameobj.dy) 
+    if myblock != -1:
+        myblock.undraw()
+        playfield.remove(myblock)
+        setgridnext(gameobj,0) 
+
 def bullettimer():
-    for bullet in bullets:
-      bullet.move()
-    mainwin.after(20,bullettimer)  
+    for bullet in bullets.copy():
+      if (getgridnext(bullet) == 0) and (bullet.yblock > 0):
+         bullet.move()
+      else:
+         if getgridnext(bullet) == 1:
+              removeblocknext(bullet) 
+         bullet.undraw()
+         bullets.remove(bullet)
+    mainwin.after(30,bullettimer)  
 
 def shiptimer():
-    if getgrid(ship.xblock+ship.dx,ship.yblock+ship.dy) == 0:
+    if getgridnext(ship) == 0:
        ship.move()
+    ship.dx = 0
+    ship.dy = 0
     mainwin.after(150,shiptimer)  
 
 def reload():
     ship.canfire = True
-
-def keytimer():
-    global score
-    if keys["w"]:
-        ship.dy = -1
-        ship.dx = 0
-    elif keys["d"]:
-        ship.dx = 1
-        ship.dy = 0
-    elif keys["a"]:
-        ship.dx = -1
-        ship.dy = 0
-    elif keys["s"]:
-        ship.dy = 1
-        ship.dx = 0
-    elif keys["space"]:
-        if ship.canfire:
-         bullet = putblock(ship.xblock,ship.yblock-1,"bullet.png",dx=0,dy=-1)
-         bullets.append(bullet)
-         ship.canfire = False;
-         LEDlib.Erasepoints(canvas1,LEDscore)
-         score = score + 1
-         LEDlib.ShowScore(canvas1,200,30,score, LEDscore)
-         mainwin.after(200,reload)
-    else:
-        ship.dx = 0
-        ship.dy = 0
-    mainwin.after(10,keytimer)
-
 
 
 playfield = []
@@ -170,27 +162,42 @@ for i in range(8,0,-1): # count backwards
 
 bullets = []
 
-ship = putblock(20,29,"ship.png",dx=0,dy=0)
+ship = putblock(20,29,"gun2.png",dx=0,dy=0)
 ship.canfire = True
 
-keys = {"w": False, "a": False, "s": False, "d": False, "space": False}
-
 def mykey(event):
-    if event.keysym in keys:
-        keys[event.keysym] = True
-
-def mykey_release(event):
-    if event.keysym in keys:
-        keys[event.keysym] = False
+    global score, LEDscore
+    key = event.keysym
+    if key == "w":
+        ship.dy = -1
+        ship.dx = 0
+    elif key == "d":
+        ship.dx = 1
+        ship.dy = 0
+    elif key == "a":
+        ship.dx = -1
+        ship.dy = 0
+    elif key == "s":
+        ship.dy = 1
+        ship.dx = 0
+    elif key == "space":
+        if ship.canfire:
+         bullet = putblock(ship.xblock,ship.yblock-1,"bullet.png",dx=0,dy=-1)
+         bullets.append(bullet)
+         ship.canfire = False;
+         LEDlib.Erasepoints(canvas1,LEDscore)
+         LEDscore = []
+         score = score + 1
+         LEDlib.ShowScore(canvas1,200,30,score, LEDscore)
+         mainwin.after(200,reload)
 
 mainwin.bind("<KeyPress>", mykey)
-mainwin.bind("<KeyRelease>", mykey_release)
 
 LEDscore = []
 
 centipedetimer()
 shiptimer()
 bullettimer()
-keytimer()
+
 LEDlib.ShowScore(canvas1,200,30,score, LEDscore)
 mainwin.mainloop()
