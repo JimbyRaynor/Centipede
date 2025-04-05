@@ -13,16 +13,15 @@ centipedelength = 30
 import LEDlib
 
 # make centipede longer to increase difficulty. Do not make faster
-# split centipede in two if hit (remove the centipede block that is hit with the bullet)
-#   ->> no need to make new centipede just force a block there.
-                 #  is that what happens in the real centipede?
-# make score in LED first 
+# only need one centipede list: Just add more sections to list to make more
+# make rocks get smaller when hit 
+# fix hit bugs
 
 # for loading files (.png), set current directory = location of this python script (needed for Linux)
 current_script_directory = os.path.dirname(os.path.abspath(__file__))
 os.chdir(current_script_directory)
 
-SpriteWidth = 20 # height and width of sprites. Every sprite has this size. This is the "block" size
+SpriteWidth = 32 # height and width of sprites. Every sprite has this size. This is the "block" size
 
 class Spriteobj:
     def __init__(self, canvas,fup="",fdown="",fright="",fleft="",xblock=0,yblock=0,dx=0,dy=0,size=20):
@@ -49,17 +48,10 @@ class Spriteobj:
 
         
 mainwin = Tk(className = "Centipede")
-mainwin.geometry("800x680")
-canvas1 = Canvas(mainwin,width = 800, height = 600, bg = "black")
+mainwin.geometry("1216x704")
+canvas1 = Canvas(mainwin,width = 1216, height = 704, bg = "black")
 canvas1.place(x=0,y=0)
-canvastext = Canvas(mainwin,width=784,height=64, bg = "black")
-canvastext.place(x=6,y=607)
 
-font1 = ('Arial',16,"bold")
-def printscr(mytext,x,y):
-    canvastext.create_text(x,y,text=mytext,fill="yellow",font = font1)
-
-printscr("Centipede",784/2,10)
 
 def creatematrix(rows,cols):
     return [[0 for i in range(cols)] for j in range(rows)]
@@ -94,15 +86,16 @@ def getblocknext(gameobj):
     return getblock(gameobj.xblock+gameobj.dx,gameobj.yblock+gameobj.dy)
 
 def createplayfield():
-    for i in range(40):
-        putblock(i,0,"body.png",gridtype=1)
-    for i in range(30):
-        putblock(0,i,"body.png",gridtype=1)
-        putblock(39,i,"body.png",gridtype=1)
-    for i in range(2,38):
-        for j in range(1,24):
+    for i in range(38):
+        putblock(i,0,"rock.png",gridtype=1)
+        putblock(i,21,"rock.png",gridtype=1)
+    for i in range(21):
+        putblock(0,i,"rock.png",gridtype=1)
+        putblock(37,i,"rock.png",gridtype=1)
+    for i in range(1,38):
+        for j in range(3,20):
             if random.randint(1,100) > 95:
-                putblock(i,j,"body.png",gridtype=1)
+                putblock(i,j,"rock.png",gridtype=1)
 
  
 
@@ -116,18 +109,15 @@ def movebody():
          cbody.dx, cbody.dy = 0,1
          myblock = getblocknext(cbody) 
          if myblock != -1:  # okay to check since (if found) myblock does not have type <int> (and so is not -1)
-             myblock.undraw()
-             playfield.remove(myblock)
+             if myblock.yblock < 21:
+               myblock.undraw()
+               playfield.remove(myblock)
          cbody.move()
          cbody.dx, cbody.dy = -olddx, 0
-      if cbody.yblock > 29:
-         cbody.goto(1,1)
+      if cbody.yblock > 20:
+         cbody.goto(1,15)
          cbody.dx = 1 
       setgrid(cbody.xblock,cbody.yblock,2)
-
-def centipedetimer():
-    movebody()
-    mainwin.after(300,centipedetimer)
 
 def removeblocknext(gameobj):
     myblock = getblocknext(gameobj) 
@@ -143,19 +133,24 @@ def addtoscore(amount):
     score = score + amount
     LEDlib.ShowScore(canvas1,200,30,score, LEDscore)
 
+
+def centipedetimer():
+    movebody()
+    mainwin.after(300,centipedetimer)
+
 def bullettimer():
     for bullet in bullets.copy():
-      if (getgridnext(bullet) == 0) and (bullet.yblock > 0):
+      if (getgridnext(bullet) == 0) and (bullet.yblock > 1):
          bullet.move()
       else:
-         if getgridnext(bullet) == 1: # hit block
+         if getgridnext(bullet) == 1  and (bullet.yblock > 1) : # hit block
               removeblocknext(bullet)
               addtoscore(1)
          if getgridnext(bullet) == 2: # hit centipede
               c = getblocknext(bullet)
               centipede.remove(c)
               removeblocknext(bullet) # this will remove centipede part from playfield
-              putblock(bullet.xblock+bullet.dx,bullet.yblock+bullet.dy,"body.png",gridtype=1)
+              putblock(bullet.xblock+bullet.dx,bullet.yblock+bullet.dy,"rock.png",gridtype=1)
               addtoscore(10)     
          bullet.undraw()
          bullets.remove(bullet)
@@ -181,7 +176,7 @@ for i in range(centipedelength,0,-1): # count backwards
 
 bullets = []
 
-ship = putblock(20,29,"gun2.png",dx=0,dy=0)
+ship = putblock(20,20,"gun3.png",dx=0,dy=0)
 ship.canfire = True
 
 def mykey(event):
