@@ -144,9 +144,7 @@ def movebody():
          if myblock != -1:  # okay to check since (if found) myblock does not have type <int> (and so is not -1)
              if myblock.gridtype == 1: # a boulder
                if myblock.yblock < 21:
-                 myblock.undraw() # remove boulder that is in the way
-                 setgridobj(myblock,0)
-                 playfield.remove(myblock) # blockerase function
+                 removeblock(myblock) # remove this block because it is in the way
                else:
                  blockgoto(cbody,1,15) # hit bottom, so move up 6 rows
                  cbody.dx = 1  
@@ -154,12 +152,11 @@ def movebody():
          blockmove(cbody) # try to move down, something else could be in the way (if so move fails)
          cbody.dx, cbody.dy = -olddx, 0 # reverse original direction
 
-def removeblocknext(gameobj):
+def removeblocknext(gameobj): 
     myblock = getblocknext(gameobj) 
-    while myblock != -1:
+    if myblock != -1:
         myblock.undraw()
         playfield.remove(myblock)
-        myblock = getblocknext(gameobj) 
     setgridnext(gameobj,0) 
 
 def removeblock(gameobj):
@@ -183,7 +180,7 @@ def bullettimer():
     if len(bullets) == 0: return
     for bullet in bullets.copy():
       if (getgridnext(bullet) == 0) and (bullet.yblock > 1):
-         bullet.move()
+         blockmove(bullet)
       else:
          if getgridnext(bullet) == 1  and (bullet.yblock > 1) : # hit block
               removeblocknext(bullet)
@@ -193,8 +190,8 @@ def bullettimer():
               centipede.remove(c)
               removeblocknext(bullet) # this will remove centipede part from playfield
               putblock(bullet.xblock+bullet.dx,bullet.yblock+bullet.dy,"rock.png",gridtype=1)
-              addtoscore(10)     
-         bullet.undraw()
+              addtoscore(10)  
+         removeblock(bullet)        
          bullets.remove(bullet)
     mainwin.after(30,bullettimer)  
 
@@ -240,7 +237,7 @@ def mykey(event):
         if ship.canfire:
            blockabove =  getblock(ship.xblock,ship.yblock-1)
            if blockabove == -1:
-             bullet = putblock(ship.xblock,ship.yblock-1,"bullet.png",dx=0,dy=-1)
+             bullet = putblock(ship.xblock,ship.yblock-1,"bullet.png",dx=0,dy=-1,gridtype=3)
              bullets.append(bullet)
              mainwin.after(30,bullettimer) 
            else:
