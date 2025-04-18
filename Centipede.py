@@ -135,23 +135,24 @@ def createplayfield():
 
 def movebody():
     for cbody in centipede:
-      setgrid(cbody.xblock,cbody.yblock,0)
-      if getgridnext(cbody) == 0:
-         cbody.move()
-      else: # go down and reverse direction
+      setgridobj(cbody,0)
+      if blockmove(cbody) == -1:  # -1 means cannot move (blocked path), o/w 0 it is moved
+         # go down and reverse direction
          olddx =  cbody.dx
          cbody.dx, cbody.dy = 0,1
-         myblock = getblocknext(cbody) 
+         myblock = getblocknext(cbody) # see what is below. Is it a boulder?
          if myblock != -1:  # okay to check since (if found) myblock does not have type <int> (and so is not -1)
-             if myblock.yblock < 21:
-               myblock.undraw()
-               playfield.remove(myblock)
-         cbody.move()
-         cbody.dx, cbody.dy = -olddx, 0
-      if cbody.yblock > 20:
-         cbody.goto(1,15)
-         cbody.dx = 1 
-      setgrid(cbody.xblock,cbody.yblock,2)
+             if myblock.gridtype == 1: # a boulder
+               if myblock.yblock < 21:
+                 myblock.undraw() # remove boulder that is in the way
+                 setgridobj(myblock,0)
+                 playfield.remove(myblock) # blockerase function
+               else:
+                 blockgoto(cbody,1,15) # hit bottom, so move up 6 rows
+                 cbody.dx = 1  
+                 cbody.dy = 0 
+         blockmove(cbody) # try to move down, something else could be in the way (if so move fails)
+         cbody.dx, cbody.dy = -olddx, 0 # reverse original direction
 
 def removeblocknext(gameobj):
     myblock = getblocknext(gameobj) 
@@ -213,7 +214,7 @@ createplayfield()
 
 centipede = [] 
 for i in range(centipedelength,0,-1): # count backwards
-    centipede.append(putblock(i,1,"bodyblue.png",dx=1,dy=0))
+    centipede.append(putblock(i,1,"bodyblue.png",dx=1,dy=0,gridtype=2))
 
 bullets = []
 
