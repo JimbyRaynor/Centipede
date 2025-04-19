@@ -41,6 +41,9 @@ def setgrid(x,y,gtype):
         print("gtype = ", gtype)
     Grid[y][x] = gtype # matrices refer to y (row number) first!
 
+def setgridNoError(x,y,gtype):
+    Grid[y][x] = gtype # matrices refer to y (row number) first!
+
 def getgrid(x,y):
     return Grid[y][x] # matrices refer to y (row number) first!
 
@@ -52,6 +55,11 @@ def getgridobj(gameobj):
 
 def setgridnext(gameobj,gtype):
     setgrid(gameobj.xblock+gameobj.dx,gameobj.yblock+gameobj.dy,gtype)
+
+def changegridnext(gameobj,dchange):
+    valuegrid = getgridnext(gameobj)+dchange
+    setgridNoError(gameobj.xblock+gameobj.dx,gameobj.yblock+gameobj.dy,valuegrid)
+    return valuegrid
 
 def setgridobj(gameobj,gtype):
     setgrid(gameobj.xblock,gameobj.yblock,gtype)

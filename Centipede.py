@@ -53,7 +53,7 @@ def movebody():
          cbody.dx, cbody.dy = 0,1
          myblock = getblocknext(cbody) # see what is below. Is it a boulder?
          if myblock != -1:  # okay to check since (if found) myblock does not have type <int> (and so is not -1)
-             if myblock.gridtype == 1: # a boulder
+             if myblock.gridtype in [1,2,3,4,5,6,7,8,9]: # a boulder
                if myblock.yblock < 21:
                  removeblock(myblock) # remove this block because it is in the way
                else:
@@ -84,11 +84,10 @@ def bullettimer():
          blockmove(bullet)
       else:
          if getgridnext(bullet) in [1,2,3,4,5,6,7,8,9]  and (bullet.yblock > 1): # hit boulder
-                setgridnext(bullet, getgridobj(bullet)-1)
-                if getgridnext(bullet) == 0:
-                   removeblock(bullet) 
+                if changegridnext(bullet, -1) == 0:
+                   removeblocknext(bullet) 
                 addtoscore(1)
-         if getgridnext(bullet) == 2: # hit centipede
+         if getgridnext(bullet) == 20: # hit centipede
               c = getblocknext(bullet)
               centipede.remove(c)
               removeblocknext(bullet) # this will remove centipede part from playfield
@@ -145,9 +144,8 @@ def mykey(event):
              mainwin.after(30,bullettimer) 
            else:
              if getgridobj(blockabove) in [1,2,3,4,5,6,7,8,9]: # boulder
-                setgridobj(blockabove, getgridobj(blockabove)-1)
-                if getgridobj(blockabove) == 0:
-                   removeblock(blockabove) 
+                if changegridnext(blockabove, -1) == 0:
+                   removeblocknext(blockabove) 
                 addtoscore(1)
              if getgridobj(blockabove) == 20: # hit centipede
                 centipede.remove(blockabove)
