@@ -10,7 +10,7 @@ Grid = creatematrix(100,100)   # rows, columns
 SpriteWidth = 32 # height and width of sprites. Every sprite has this size. This is the "block" size
 
 class Spriteobj:
-    def __init__(self, canvas,fup="",fdown="",fright="",fleft="",xblock=0,yblock=0,dx=0,dy=0,gridtype=0,size=20):
+    def __init__(self, canvas,fup="",fimages=[],xblock=0,yblock=0,dx=0,dy=0,gridtype=0,size=20):
         self.xblock = xblock # number of blocks (sprites) from left of screen # col
         self.yblock = yblock # number of blocks (sprites) down from top of screen # row
         self.size = size
@@ -19,8 +19,14 @@ class Spriteobj:
         self.dy = dy # 0,1,-1   dy = 1 means move one block down
         self.canfire = False;
         self.canvas = canvas
-        self.imageup = PhotoImage(file=fup)
-        self.sprite = canvas.create_image(0,0,image=self.imageup)
+        self.images = []
+        for f in fimages:
+          self.images.append(PhotoImage(file=f))
+        if len(fimages) > 0:
+            self.sprite = canvas.create_image(0,0,image=self.images[len(fimages)-1])
+        if fup != "":
+           self.imageup = PhotoImage(file=fup)
+           self.sprite = canvas.create_image(0,0,image=self.imageup)
         canvas.move(self.sprite, (xblock+0.5)*size,(yblock+0.5)*size)
     def move(self):
         self.xblock = self.xblock + self.dx
@@ -32,7 +38,10 @@ class Spriteobj:
         self.canvas.coords(self.sprite,(xblock+0.5)*self.size,(yblock+0.5)*self.size)
     def undraw(self):
         self.canvas.delete(self.sprite)
-
+    def changeimagenum(self,n):
+        if n < len(self.images):
+           self.canvas.itemconfigure(self.sprite,image=self.images[n])
+      
 
 def setgrid(x,y,gtype):
     if Grid[y][x] != 0 and gtype != 0:
@@ -64,9 +73,18 @@ def changegridnext(gameobj,dchange):
 def setgridobj(gameobj,gtype):
     setgrid(gameobj.xblock,gameobj.yblock,gtype)
 
-def putblock(canvas,x,y,stype,dx=0,dy=0,gridtype=0):
+def putblock(canvas,x,y,stype="",dx=0,dy=0,gridtype=0):
     if getgrid(x,y) == 0:  # only one object at each location
          block = Spriteobj(canvas,fup=stype,xblock=x,yblock=y,size=SpriteWidth,dx=dx,dy=dy,gridtype=gridtype)
+         playfield.append(block)  # to stop garbage collector removing block!
+         setgrid(x,y,gridtype)
+         return block
+    else:
+        return -1 
+    
+def putblockAni(canvas,x,y,fimages=[],dx=0,dy=0,gridtype=0):
+    if getgrid(x,y) == 0:  # only one object at each location
+         block = Spriteobj(canvas,fimages=fimages,xblock=x,yblock=y,size=SpriteWidth,dx=dx,dy=dy,gridtype=gridtype)
          playfield.append(block)  # to stop garbage collector removing block!
          setgrid(x,y,gridtype)
          return block

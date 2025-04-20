@@ -14,7 +14,8 @@ centipedelength = 30
 
 
 # centipede could hit bullet (sideways)
-
+# putblockAni function with SpriteobjAni class for animations: png1, png2, etc. with numpngs = 9
+#  sprites go into a List. Then reference by index
 # make centipede longer to increase difficulty. Do not make faster
 # only need one centipede list: Just add more sections to list to make more
 # make rocks get smaller when hit 
@@ -29,18 +30,20 @@ mainwin.geometry("1216x704")
 canvas1 = Canvas(mainwin,width = 1216, height = 704, bg = "black")
 canvas1.place(x=0,y=0)
 
+def putrock(canvas,x,y):
+    putblockAni(canvas,x=x,y=y,fimages=["rock9.png","rock8.png","rock7.png","rock6.png","rock5.png","rock4.png","rock3.png","rock2.png","rock.png"],gridtype=9)
 
 def createplayfield():
     for i in range(38):
-        putblock(canvas1,i,0,"rock.png",gridtype=9)
-        putblock(canvas1,i,21,"rock.png",gridtype=9)
+        putrock(canvas1,x=i,y=0)
+        putrock(canvas1,i,21)
     for i in range(21):
-        putblock(canvas1,0,i,"rock.png",gridtype=9)
-        putblock(canvas1,37,i,"rock.png",gridtype=9)
+        putrock(canvas1,0,i)
+        putrock(canvas1,37,i)
     for i in range(1,38):
         for j in range(3,20):
             if random.randint(1,100) > 95:
-                putblock(canvas1,i,j,"rock.png",gridtype=9)
+                putrock(canvas1,i,j)
 
  
 
@@ -84,6 +87,8 @@ def bullettimer():
          blockmove(bullet)
       else:
          if getgridnext(bullet) in [1,2,3,4,5,6,7,8,9]  and (bullet.yblock > 1): # hit boulder
+                rock = getblocknext(bullet)
+                rock.changeimagenum(getgridnext(bullet)-2)
                 if changegridnext(bullet, -1) == 0:
                    removeblocknext(bullet) 
                 addtoscore(1)
@@ -91,7 +96,7 @@ def bullettimer():
               c = getblocknext(bullet)
               centipede.remove(c)
               removeblocknext(bullet) # this will remove centipede part from playfield
-              putblock(canvas1,bullet.xblock+bullet.dx,bullet.yblock+bullet.dy,"rock.png",gridtype=9)
+              putrock(canvas1,bullet.xblock+bullet.dx,bullet.yblock+bullet.dy)
               addtoscore(10)  
          removeblock(bullet)        
          bullets.remove(bullet)
@@ -144,13 +149,15 @@ def mykey(event):
              mainwin.after(30,bullettimer) 
            else:
              if getgridobj(blockabove) in [1,2,3,4,5,6,7,8,9]: # boulder
+                rock = getblocknext(blockabove)
+                rock.changeimagenum(getgridnext(blockabove)-2)
                 if changegridnext(blockabove, -1) == 0:
                    removeblocknext(blockabove) 
                 addtoscore(1)
              if getgridobj(blockabove) == 20: # hit centipede
                 centipede.remove(blockabove)
                 removeblock(blockabove) # this will remove centipede part from playfield
-                putblock(canvas1,blockabove.xblock,blockabove.yblock,"rock.png",gridtype=9)
+                putrock(canvas1,blockabove.xblock,blockabove.yblock)
                 addtoscore(10)
            ship.canfire = False;
            mainwin.after(400,reload)
