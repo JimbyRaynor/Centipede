@@ -13,12 +13,11 @@ score = 0
 centipedelength = 30
 
 
-# centipede could hit bullet (sideways)
-# putblockAni function with SpriteobjAni class for animations: png1, png2, etc. with numpngs = 9
-#  sprites go into a List. Then reference by index
+# make spark sprite that can go anywhere and only lasts 1 second. Then removes itself
+  # put spark just above gun location (could be just tongue pocking out)
 # make centipede longer to increase difficulty. Do not make faster
 # only need one centipede list: Just add more sections to list to make more
-# make rocks get smaller when hit 
+# add levels
 
 # for loading files (.png), set current directory = location of this python script (needed for Linux)
 current_script_directory = os.path.dirname(os.path.abspath(__file__))
@@ -142,6 +141,7 @@ def mykey(event):
         ship.dx = 0
     elif key == "space":
         if ship.canfire:
+           spark = Sparkobj(canvas1, fimages=["tongue1.png","tongue2.png","tongue3.png","tongue4.png","tongue5.png","tongue6.png",],xblock=ship.xblock,yblock=ship.yblock,dx=0,dy=-31,timealive = 0.1)
            blockabove =  getblock(ship.xblock,ship.yblock-1)
            if blockabove == -1:
              bullet = putblock(canvas1,ship.xblock,ship.yblock-1,"bullet.png",dx=0,dy=-1,gridtype=30)
@@ -160,7 +160,7 @@ def mykey(event):
                 putrock(canvas1,blockabove.xblock,blockabove.yblock)
                 addtoscore(10)
            ship.canfire = False;
-           mainwin.after(400,reload)
+           mainwin.after(300,reload)
           
 
 mainwin.bind("<KeyPress>", mykey)

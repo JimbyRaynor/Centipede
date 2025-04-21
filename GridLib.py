@@ -1,4 +1,5 @@
 from tkinter import *
+import threading
 
 playfield = []
 
@@ -10,7 +11,7 @@ Grid = creatematrix(100,100)   # rows, columns
 SpriteWidth = 32 # height and width of sprites. Every sprite has this size. This is the "block" size
 
 class Spriteobj:
-    def __init__(self, canvas,fup="",fimages=[],xblock=0,yblock=0,dx=0,dy=0,gridtype=0,size=20):
+    def __init__(self, canvas,fup="",fimages=[],xblock=0,yblock=0,dx=0,dy=0,gridtype=0,size=SpriteWidth):
         self.xblock = xblock # number of blocks (sprites) from left of screen # col
         self.yblock = yblock # number of blocks (sprites) down from top of screen # row
         self.size = size
@@ -27,7 +28,7 @@ class Spriteobj:
         if fup != "":
            self.imageup = PhotoImage(file=fup)
            self.sprite = canvas.create_image(0,0,image=self.imageup)
-        canvas.move(self.sprite, (xblock+0.5)*size,(yblock+0.5)*size)
+        self.canvas.move(self.sprite, (xblock+0.5)*size,(yblock+0.5)*size)
     def move(self):
         self.xblock = self.xblock + self.dx
         self.yblock = self.yblock + self.dy
@@ -42,6 +43,46 @@ class Spriteobj:
         if n < len(self.images):
            self.canvas.itemconfigure(self.sprite,image=self.images[n])
       
+
+class Sparkobj:
+    def __init__(self, canvas,fimages=[],xblock=0,yblock=0,dx=0,dy=0,size=SpriteWidth,timealive=1.0):
+        self.xblock = xblock # number of blocks (sprites) from left of screen # col
+        self.yblock = yblock # number of blocks (sprites) down from top of screen # row
+        self.size = size
+        self.dx = dx 
+        self.dy = dy
+        self.canvas = canvas
+        self.images = []
+        self.currentindex = 0
+        self.threadrunning = True
+        self.timealive = timealive
+        self.timers = []
+        for f in fimages:
+          self.images.append(PhotoImage(file=f))
+        if len(fimages) > 0:
+            self.sprite = canvas.create_image(0,0,image=self.images[len(fimages)-1])
+        self.canvas.move(self.sprite, (xblock+0.5)*size+dx,(yblock+0.5)*size+dy)
+        self.changeimagenum()
+    def undraw(self):
+        self.canvas.delete(self.sprite)
+        self.threadrunning = False
+        self.canceltimers()
+        del self
+    def canceltimers(self):
+        for timer in self.timers:
+            timer.cancel()
+        self.timers=[]
+    def changeimagenum(self):
+        if self.threadrunning:
+           self.canvas.itemconfigure(self.sprite,image=self.images[self.currentindex]) 
+           self.currentindex = self.currentindex + 1
+           if self.currentindex >= len(self.images):
+              self.currentindex = 0 
+              self.undraw()
+           else:
+              timer = threading.Timer(self.timealive/len(self.images),self.changeimagenum)
+              timer.start()
+              self.timers.append(timer)
 
 def setgrid(x,y,gtype):
     if Grid[y][x] != 0 and gtype != 0:
