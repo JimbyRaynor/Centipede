@@ -3,8 +3,8 @@ import random
 import os
 import sys
 
-# to import LED
-two_levels_up = os.path.abspath(os.path.join('..', '..'))
+# to import LEDlib and GridLib in Documents
+# NOT NEEDED: two_levels_up = os.path.abspath(os.path.join('..', '..'))
 sys.path.insert(0, "/home/deck/Documents")
 import LEDlib
 from GridLib import *
@@ -13,11 +13,11 @@ score = 0
 centipedelength = 30
 
 
-# make spark sprite that can go anywhere and only lasts 1 second. Then removes itself
-  # put spark just above gun location (could be just tongue pocking out)
 # make centipede longer to increase difficulty. Do not make faster
 # only need one centipede list: Just add more sections to list to make more
-# add levels
+# add levels. Limit total shots per level. Game gets much harder with lots of rocks!
+# put flowers at bottom, if centiped hits flowers then GameOver
+# use flowers to indicate level number like pacman
 
 # for loading files (.png), set current directory = location of this python script (needed for Linux)
 current_script_directory = os.path.dirname(os.path.abspath(__file__))
@@ -141,7 +141,7 @@ def mykey(event):
         ship.dx = 0
     elif key == "space":
         if ship.canfire:
-           spark = Sparkobj(canvas1, fimages=["tongue1.png","tongue2.png","tongue3.png","tongue4.png","tongue5.png","tongue6.png",],xblock=ship.xblock,yblock=ship.yblock,dx=0,dy=-31,timealive = 0.1)
+           spark = SparkAfterobj(mainwin, canvas1, fimages=["tongue1.png","tongue2.png","tongue3.png","tongue4.png","tongue5.png","tongue6.png",],xblock=ship.xblock,yblock=ship.yblock,dx=0,dy=-31,timealive = 100)
            blockabove =  getblock(ship.xblock,ship.yblock-1)
            if blockabove == -1:
              bullet = putblock(canvas1,ship.xblock,ship.yblock-1,"bullet.png",dx=0,dy=-1,gridtype=30)

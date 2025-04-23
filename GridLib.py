@@ -44,7 +44,7 @@ class Spriteobj:
            self.canvas.itemconfigure(self.sprite,image=self.images[n])
       
 
-class Sparkobj:
+class Sparkobj: # not needed anymore, but interesting use of threads. Use SparkAfterobj now
     def __init__(self, canvas,fimages=[],xblock=0,yblock=0,dx=0,dy=0,size=SpriteWidth,timealive=1.0):
         self.xblock = xblock # number of blocks (sprites) from left of screen # col
         self.yblock = yblock # number of blocks (sprites) down from top of screen # row
@@ -83,6 +83,37 @@ class Sparkobj:
               timer = threading.Timer(self.timealive/len(self.images),self.changeimagenum)
               timer.start()
               self.timers.append(timer)
+
+class SparkAfterobj:
+    def __init__(self,mainwin, canvas,fimages=[],xblock=0,yblock=0,dx=0,dy=0,size=SpriteWidth,timealive=1000):
+        self.xblock = xblock # number of blocks (sprites) from left of screen # col
+        self.yblock = yblock # number of blocks (sprites) down from top of screen # row
+        self.size = size
+        self.dx = dx 
+        self.dy = dy
+        self.canvas = canvas
+        self.mainwin = mainwin
+        self.images = []
+        self.currentindex = 0
+        self.timealive = timealive
+        for f in fimages:
+          self.images.append(PhotoImage(file=f))
+        if len(fimages) > 0:
+            self.sprite = canvas.create_image(0,0,image=self.images[len(fimages)-1])
+        self.canvas.move(self.sprite, (xblock+0.5)*size+dx,(yblock+0.5)*size+dy)
+        self.changeimagenum()
+    def undraw(self):
+        self.canvas.delete(self.sprite)
+        del self
+    def changeimagenum(self):
+        self.canvas.itemconfigure(self.sprite,image=self.images[self.currentindex]) 
+        self.currentindex = self.currentindex + 1
+        if self.currentindex >= len(self.images):
+            self.currentindex = 0 
+            self.undraw()
+        else:
+           self.mainwin.after(int(self.timealive/len(self.images)),self.changeimagenum)
+            
 
 def setgrid(x,y,gtype):
     if Grid[y][x] != 0 and gtype != 0:
