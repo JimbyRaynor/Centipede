@@ -39,6 +39,7 @@ class Spriteobj:
         self.canvas.coords(self.sprite,(xblock+0.5)*self.size,(yblock+0.5)*self.size)
     def undraw(self):
         self.canvas.delete(self.sprite)
+        playfield.remove(self)
     def changeimagenum(self,n):
         if n < len(self.images):
            self.canvas.itemconfigure(self.sprite,image=self.images[n])
@@ -194,10 +195,10 @@ def removeblocknext(gameobj):
     myblock = getblocknext(gameobj) 
     if myblock != -1:
         myblock.undraw()
-        playfield.remove(myblock)
+        #playfield.remove(myblock) done in undraw
     setgridnext(gameobj,0) 
 
 def removeblock(gameobj):
       gameobj.undraw()
       setgrid(gameobj.xblock,gameobj.yblock,0)
-      playfield.remove(gameobj)
+      #playfield.remove(gameobj) done in undraw

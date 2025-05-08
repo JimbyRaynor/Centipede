@@ -12,12 +12,28 @@ from GridLib import *
 score = 0
 centipedelength = 30
 
+GameOver = True
+ShowGameOver = False
 
+
+
+# make sure CAPSLOCK is NOT down :)
+
+# Draw instructions as bitmap in background (very easy, just use putblock)
 # make centipede longer to increase difficulty. Do not make faster
 # only need one centipede list: Just add more sections to list to make more
-# add levels. Limit total shots per level. Game gets much harder with lots of rocks!
-# put flowers at bottom, if centiped hits flowers then GameOver
+# add levels. 
+# No home screen.
+# Global variables for end of game / game start:
+# GameOver = True   (press any key to start). 
+# Use bitmap for GameOver that can be used for all games.
+# ShowGameOver = False  (use False for start of game, just display "press any key to start")
+# Use bitmap for "press any key to start" that can be used for all games  
+
+# put flowers at bottom, if centipede hits flowers then flower gets quarter eaten and centipede goes up 6 rows
+# Game ends when centipede breaks through
 # use flowers to indicate level number like pacman
+# Put score above rocks in black area. Look at Asterix game in GenXGrownUp
 
 # for loading files (.png), set current directory = location of this python script (needed for Linux)
 current_script_directory = os.path.dirname(os.path.abspath(__file__))
@@ -25,9 +41,14 @@ os.chdir(current_script_directory)
 
         
 mainwin = Tk(className = "Centipede")
-mainwin.geometry("1216x704")
-canvas1 = Canvas(mainwin,width = 1216, height = 704, bg = "black")
+mainwin.geometry("1216x800")
+canvas1 = Canvas(mainwin,width = 1216, height = 800, bg = "black")
 canvas1.place(x=0,y=0)
+
+# MUST draw these before rocks, because a rock with block creation of new block.
+# Maybe creatre a new sprite class for this
+GameOverSprite = putblock(canvas1,17,10,"GameOver.png",dx=0,dy=0)
+PressAnyKeySprite = putblock(canvas1,17,15,"PressAnyKey.png",dx=0,dy=0)
 
 def putrock(canvas,x,y):
     putblockAni(canvas,x=x,y=y,fimages=["rock9.png","rock8.png","rock7.png","rock6.png","rock5.png","rock4.png","rock3.png","rock2.png","rock.png"],gridtype=9)
@@ -47,6 +68,7 @@ def createplayfield():
  
 
 def movebody():
+    global GameOverSprite, PressAnyKeySprite, GameOver
     for cbody in centipede:
       setgridobj(cbody,0)
       if blockmove(cbody) == -1:  # -1 means cannot move (blocked path), o/w 0 it is moved
@@ -62,6 +84,11 @@ def movebody():
                  blockgoto(cbody,1,15) # hit bottom, so move up 6 rows
                  cbody.dx = 1  
                  cbody.dy = 0 
+                 # MUST draw these before rocks, because a rock with block creation of new block.
+                  # Maybe creatre a new sprite class for this
+                 GameOverSprite = putblock(canvas1,17,10,"GameOver.png",dx=0,dy=0)
+                 PressAnyKeySprite = putblock(canvas1,17,15,"PressAnyKey.png",dx=0,dy=0)
+                 GameOver = True
          blockmove(cbody) # try to move down, something else could be in the way (if so move fails)
          cbody.dx, cbody.dy = -olddx, 0 # reverse original direction
 
@@ -72,12 +99,12 @@ def addtoscore(amount):
     LEDlib.Erasepoints(canvas1,LEDscore)
     LEDscore = []
     score = score + amount
-    LEDlib.ShowScore(canvas1,200,30,score, LEDscore)
+    LEDlib.ShowScore(canvas1,80,740,score, LEDscore)
 
 
 def centipedetimer():
     movebody()
-    mainwin.after(300,centipedetimer)
+    if not GameOver: mainwin.after(300,centipedetimer)
 
 def bullettimer():
     if len(bullets) == 0: return
@@ -99,14 +126,14 @@ def bullettimer():
               addtoscore(10)  
          removeblock(bullet)        
          bullets.remove(bullet)
-    mainwin.after(30,bullettimer)  
+    if not GameOver: mainwin.after(30,bullettimer)  
 
 def shiptimer():
     if getgridnext(ship) == 0:
        ship.move()
     ship.dx = 0
     ship.dy = 0
-    mainwin.after(150,shiptimer)  
+    if not GameOver: mainwin.after(150,shiptimer)  
 
 def reload():
     ship.canfire = True
@@ -124,8 +151,16 @@ bullets = []
 ship = putblock(canvas1,20,20,"gun3.png",dx=0,dy=0)
 ship.canfire = True
 
+
 def mykey(event):
-    global score, LEDscore
+    global score, LEDscore, GameOver
+    if GameOver:
+        GameOver = False
+        GameOverSprite.undraw()
+        PressAnyKeySprite.undraw()
+        centipedetimer()
+        shiptimer()
+        bullettimer()
     key = event.keysym
     if key == "w":
         ship.dy = -1
@@ -167,9 +202,5 @@ mainwin.bind("<KeyPress>", mykey)
 
 LEDscore = []
 
-centipedetimer()
-shiptimer()
-bullettimer()
-
-LEDlib.ShowScore(canvas1,200,30,score, LEDscore)
+LEDlib.ShowScore(canvas1,80,740,score, LEDscore)
 mainwin.mainloop()
