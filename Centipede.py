@@ -13,22 +13,16 @@ score = 0
 centipedelength = 30
 
 GameOver = True
-ShowGameOver = False
-
-
 
 # make sure CAPSLOCK is NOT down :)
 
+# End game if centipede hits ship
+# record highscore in EndGame()
 # Draw instructions as bitmap in background (very easy, just use putblock)
 # make centipede longer to increase difficulty. Do not make faster
 # only need one centipede list: Just add more sections to list to make more
 # add levels. 
-# No home screen.
-# Global variables for end of game / game start:
-# GameOver = True   (press any key to start). 
-# Use bitmap for GameOver that can be used for all games.
-# ShowGameOver = False  (use False for start of game, just display "press any key to start")
-# Use bitmap for "press any key to start" that can be used for all games  
+
 
 # put flowers at bottom, if centipede hits flowers then flower gets quarter eaten and centipede goes up 6 rows
 # Game ends when centipede breaks through
@@ -48,7 +42,6 @@ canvas1.place(x=0,y=0)
 # MUST draw these before rocks, because a rock with block creation of new block.
 # Maybe creatre a new sprite class for this
 GameOverSprite = putblock(canvas1,17,10,"GameOver.png",dx=0,dy=0)
-PressAnyKeySprite = putblock(canvas1,17,15,"PressAnyKey.png",dx=0,dy=0)
 
 def putrock(canvas,x,y):
     putblockAni(canvas,x=x,y=y,fimages=["rock9.png","rock8.png","rock7.png","rock6.png","rock5.png","rock4.png","rock3.png","rock2.png","rock.png"],gridtype=9)
@@ -66,9 +59,19 @@ def createplayfield():
                 putrock(canvas1,i,j)
 
  
+def clearplayfield():
+    tmpplayfield = playfield.copy()
+    for part in tmpplayfield:
+        part.undraw()
+        setgridobj(part,0)
+
+def EndGame():
+    global GameOverSprite, GameOver
+    setgrid(17,10,0) # need grid clear at (17,10) to place GameOverSprite, o/w putblock fails
+    GameOverSprite = putblock(canvas1,17,10,"GameOver.png",dx=0,dy=0)
+    GameOver = True
 
 def movebody():
-    global GameOverSprite, PressAnyKeySprite, GameOver
     for cbody in centipede:
       setgridobj(cbody,0)
       if blockmove(cbody) == -1:  # -1 means cannot move (blocked path), o/w 0 it is moved
@@ -84,11 +87,7 @@ def movebody():
                  blockgoto(cbody,1,15) # hit bottom, so move up 6 rows
                  cbody.dx = 1  
                  cbody.dy = 0 
-                 # MUST draw these before rocks, because a rock with block creation of new block.
-                  # Maybe creatre a new sprite class for this
-                 GameOverSprite = putblock(canvas1,17,10,"GameOver.png",dx=0,dy=0)
-                 PressAnyKeySprite = putblock(canvas1,17,15,"PressAnyKey.png",dx=0,dy=0)
-                 GameOver = True
+                 EndGame()
          blockmove(cbody) # try to move down, something else could be in the way (if so move fails)
          cbody.dx, cbody.dy = -olddx, 0 # reverse original direction
 
@@ -143,24 +142,26 @@ def reload():
 createplayfield()
 
 centipede = [] 
-for i in range(centipedelength,0,-1): # count backwards
-    centipede.append(putblock(canvas1,i,1,"bodyblue.png",dx=1,dy=0,gridtype=20))
+
+def createcentipede():
+    for i in range(centipedelength,0,-1): # count backwards
+        centipede.append(putblock(canvas1,i,1,"bodyblue.png",dx=1,dy=0,gridtype=20))
+
+createcentipede()
 
 bullets = []
+ship = 0
+def createship():
+    global ship
+    ship = putblock(canvas1,20,20,"gun3.png",dx=0,dy=0)
+    ship.canfire = True
 
-ship = putblock(canvas1,20,20,"gun3.png",dx=0,dy=0)
-ship.canfire = True
-
+createship()
 
 def mykey(event):
-    global score, LEDscore, GameOver
+    global GameOver
     if GameOver:
-        GameOver = False
-        GameOverSprite.undraw()
-        PressAnyKeySprite.undraw()
-        centipedetimer()
-        shiptimer()
-        bullettimer()
+       StartGame() 
     key = event.keysym
     if key == "w":
         ship.dy = -1
@@ -203,4 +204,19 @@ mainwin.bind("<KeyPress>", mykey)
 LEDscore = []
 
 LEDlib.ShowScore(canvas1,80,740,score, LEDscore)
+
+def StartGame():
+    global score, LEDscore, GameOver, centipede
+    GameOver = False
+    score = 0
+    addtoscore(0) # to show updated LEDscore
+    clearplayfield() 
+    createplayfield()
+    centipede = []
+    createcentipede()
+    createship()
+    centipedetimer()
+    shiptimer()
+    bullettimer()
+
 mainwin.mainloop()
