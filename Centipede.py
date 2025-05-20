@@ -2,6 +2,7 @@ from tkinter import *
 import random
 import os
 import sys
+import time
 
 # to import LEDlib and GridLib in Documents
 # NOT NEEDED: two_levels_up = os.path.abspath(os.path.join('..', '..'))
@@ -13,11 +14,17 @@ score = 0
 centipedelength = 30
 
 GameOver = True
+GameOverSprite = 0 # created in EndGame()
 
-# make sure CAPSLOCK is NOT down :)
+# 
 
-# End game if centipede hits ship
-# record highscore in EndGame()
+# PRESS the number 1 to start  (change instructions)
+#   make sure CAPSLOCK is NOT down :)
+#   click in this window
+# draw ship destroyed  sprite
+# draw centipede part
+# add levels
+# add text for SCORE, LEVEL , Jeff Minter style
 # Draw instructions as bitmap in background (very easy, just use putblock)
 # make centipede longer to increase difficulty. Do not make faster
 # only need one centipede list: Just add more sections to list to make more
@@ -39,9 +46,7 @@ mainwin.geometry("1216x800")
 canvas1 = Canvas(mainwin,width = 1216, height = 800, bg = "black")
 canvas1.place(x=0,y=0)
 
-# MUST draw these before rocks, because a rock with block creation of new block.
-# Maybe creatre a new sprite class for this
-GameOverSprite = putblock(canvas1,17,10,"GameOver.png",dx=0,dy=0)
+
 
 def putrock(canvas,x,y):
     putblockAni(canvas,x=x,y=y,fimages=["rock9.png","rock8.png","rock7.png","rock6.png","rock5.png","rock4.png","rock3.png","rock2.png","rock.png"],gridtype=9)
@@ -74,6 +79,10 @@ def EndGame():
 def movebody():
     for cbody in centipede:
       setgridobj(cbody,0)
+      myblock = getblocknext(cbody)
+      if myblock != -1:
+          if myblock.xblock == ship.xblock and myblock.yblock == ship.yblock:
+             EndGame()
       if blockmove(cbody) == -1:  # -1 means cannot move (blocked path), o/w 0 it is moved
          # go down and reverse direction
          olddx =  cbody.dx
@@ -128,8 +137,11 @@ def bullettimer():
     if not GameOver: mainwin.after(30,bullettimer)  
 
 def shiptimer():
-    if getgridnext(ship) == 0:
-       ship.move()
+    if getgridnext(ship) == 20: # centipede
+         ship.move()
+         EndGame() 
+    elif getgridnext(ship) == 0:
+         ship.move()         
     ship.dx = 0
     ship.dy = 0
     if not GameOver: mainwin.after(150,shiptimer)  
@@ -159,10 +171,11 @@ def createship():
 createship()
 
 def mykey(event):
-    global GameOver
-    if GameOver:
-       StartGame() 
+    global GameOver        
     key = event.keysym
+    if key == "1" and GameOver:
+       StartGame()
+    if GameOver: return
     if key == "w":
         ship.dy = -1
         ship.dx = 0
@@ -218,5 +231,7 @@ def StartGame():
     centipedetimer()
     shiptimer()
     bullettimer()
+
+EndGame()
 
 mainwin.mainloop()
