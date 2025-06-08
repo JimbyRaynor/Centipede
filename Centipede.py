@@ -16,12 +16,17 @@ centipedelength = 30
 GameOver = True
 GameOverSprite = 0 # created in EndGame()
 
-# 
-
-# PRESS the number 1 to start  (change instructions)
-#   make sure CAPSLOCK is NOT down :)
-#   click in this window
-# draw ship destroyed  sprite
+# make fancy attrack screen
+# reduce code
+# simplify code
+# BUG: can shot top wall of rocks
+# ADD to Game Over screen: 
+#   click in this window to play (make sure CAPSLOCK is NOT down)
+#   WASD arrow
+#   shoot -  space bar
+#   points : boulder 1
+#            centipede 10 (look at Defender/Pacman screens)
+# draw ship destroyed  sprite. Use SparkAfterobj for animation
 # draw centipede part
 # add levels
 # add text for SCORE, LEVEL , Jeff Minter style
@@ -31,10 +36,18 @@ GameOverSprite = 0 # created in EndGame()
 # add levels. 
 
 
+
 # put flowers at bottom, if centipede hits flowers then flower gets quarter eaten and centipede goes up 6 rows
 # Game ends when centipede breaks through
 # use flowers to indicate level number like pacman
 # Put score above rocks in black area. Look at Asterix game in GenXGrownUp
+
+
+# put Grid codes HERE:
+# blank (empty space) = 0
+# boulders = 1,2,3,4,5,6,7,8,9
+# ship = NOT ASSIGNED
+# centipede = 20 
 
 # for loading files (.png), set current directory = location of this python script (needed for Linux)
 current_script_directory = os.path.dirname(os.path.abspath(__file__))
@@ -53,13 +66,13 @@ def putrock(canvas,x,y):
 
 def createplayfield():
     for i in range(38):
-        putrock(canvas1,x=i,y=0)
-        putrock(canvas1,i,21)
+        putrock(canvas1,x=i,y=0+3)
+        putrock(canvas1,i,21+3)
     for i in range(21):
-        putrock(canvas1,0,i)
-        putrock(canvas1,37,i)
+        putrock(canvas1,0,i+3)
+        putrock(canvas1,37,i+3)
     for i in range(1,38):
-        for j in range(3,20):
+        for j in range(6,20):
             if random.randint(1,100) > 95:
                 putrock(canvas1,i,j)
 
@@ -73,7 +86,7 @@ def clearplayfield():
 def EndGame():
     global GameOverSprite, GameOver
     setgrid(17,10,0) # need grid clear at (17,10) to place GameOverSprite, o/w putblock fails
-    GameOverSprite = putblock(canvas1,17,10,"GameOver.png",dx=0,dy=0)
+    GameOverSprite = putblock(canvas1,18,10,"GameOver.png",dx=0,dy=0)
     GameOver = True
 
 def movebody():
@@ -107,7 +120,7 @@ def addtoscore(amount):
     LEDlib.Erasepoints(canvas1,LEDscore)
     LEDscore = []
     score = score + amount
-    LEDlib.ShowScore(canvas1,80,740,score, LEDscore)
+    LEDlib.ShowScore(canvas1,80,40,score, LEDscore)
 
 
 def centipedetimer():
@@ -157,7 +170,7 @@ centipede = []
 
 def createcentipede():
     for i in range(centipedelength,0,-1): # count backwards
-        centipede.append(putblock(canvas1,i,1,"bodyblue.png",dx=1,dy=0,gridtype=20))
+        centipede.append(putblock(canvas1,i,4,"bodyblue.png",dx=1,dy=0,gridtype=20))
 
 createcentipede()
 
@@ -216,7 +229,13 @@ mainwin.bind("<KeyPress>", mykey)
 
 LEDscore = []
 
-LEDlib.ShowScore(canvas1,80,740,score, LEDscore)
+charwidth = 23  
+LEDlib.ShowScore(canvas1,80,40,score, LEDscore)
+LEDlib.createChar(canvas1, 80,16, LEDlib.charS, LEDscore)
+LEDlib.createChar(canvas1, 80+charwidth,16, LEDlib.charC, LEDscore)
+LEDlib.createChar(canvas1, 80+charwidth*2,16, LEDlib.charO, LEDscore)
+LEDlib.createChar(canvas1, 80+charwidth*3,16, LEDlib.charR, LEDscore)
+LEDlib.createChar(canvas1, 80+charwidth*4,16, LEDlib.charE, LEDscore)
 
 def StartGame():
     global score, LEDscore, GameOver, centipede
