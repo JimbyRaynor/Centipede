@@ -1,3 +1,4 @@
+
 from tkinter import *
 import random
 import os
@@ -16,7 +17,7 @@ centipedelength = 30
 GameOver = True
 GameOverSprite = 0 # created in EndGame()
 
-# make fancy attrack screen
+# make fancy attract screen
 # reduce code
 # simplify code
 # BUG: can shot top wall of rocks
@@ -34,6 +35,7 @@ GameOverSprite = 0 # created in EndGame()
 # make centipede longer to increase difficulty. Do not make faster
 # only need one centipede list: Just add more sections to list to make more
 # add levels. 
+# try to make this into a slowish strategy game
 
 
 
@@ -121,6 +123,8 @@ def addtoscore(amount):
     LEDscore = []
     score = score + amount
     LEDlib.ShowScore(canvas1,80,40,score, LEDscore)
+    LEDlib.ShowText(canvas1,80,16,"SCORE", LEDscore)
+    LEDlib.ShowText(canvas1,600,16,"HISCORE", LEDscore)
 
 
 def centipedetimer():
@@ -229,13 +233,10 @@ mainwin.bind("<KeyPress>", mykey)
 
 LEDscore = []
 
-charwidth = 23  
+  
 LEDlib.ShowScore(canvas1,80,40,score, LEDscore)
-LEDlib.createChar(canvas1, 80,16, LEDlib.charS, LEDscore)
-LEDlib.createChar(canvas1, 80+charwidth,16, LEDlib.charC, LEDscore)
-LEDlib.createChar(canvas1, 80+charwidth*2,16, LEDlib.charO, LEDscore)
-LEDlib.createChar(canvas1, 80+charwidth*3,16, LEDlib.charR, LEDscore)
-LEDlib.createChar(canvas1, 80+charwidth*4,16, LEDlib.charE, LEDscore)
+LEDlib.ShowText(canvas1,80,16,"SCORE", LEDscore)
+LEDlib.ShowText(canvas1,600,16,"HISCORE", LEDscore)
 
 def StartGame():
     global score, LEDscore, GameOver, centipede
