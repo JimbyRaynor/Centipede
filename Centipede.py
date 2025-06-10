@@ -17,6 +17,10 @@ centipedelength = 30
 GameOver = True
 GameOverSprite = 0 # created in EndGame()
 
+# TODO 
+# Comment code for use in Python notes
+# erase polygon marque before drawing, or just draw it once 
+# make unit for saving hiscore
 # make fancy attract screen
 # reduce code
 # simplify code
@@ -42,7 +46,6 @@ GameOverSprite = 0 # created in EndGame()
 # put flowers at bottom, if centipede hits flowers then flower gets quarter eaten and centipede goes up 6 rows
 # Game ends when centipede breaks through
 # use flowers to indicate level number like pacman
-# Put score above rocks in black area. Look at Asterix game in GenXGrownUp
 
 
 # put Grid codes HERE:
@@ -116,16 +119,22 @@ def movebody():
          cbody.dx, cbody.dy = -olddx, 0 # reverse original direction
 
 
-
-def addtoscore(amount):
-    global LEDscore, score
+canvas1.create_polygon([(440,20),(730,20),(730,75),(440,75)], fill = "", outline = "green", width = 8)
+canvas1.create_line(686,54,730,54, fill = "green", width = 8)
+canvas1.create_line(730,50,730,0, fill = "black", width = 8)
+def displayscore():
+    global LEDscore
     LEDlib.Erasepoints(canvas1,LEDscore)
     LEDscore = []
-    score = score + amount
-    LEDlib.ShowScore(canvas1,80,40,score, LEDscore)
-    LEDlib.ShowText(canvas1,80,16,"SCORE", LEDscore)
-    LEDlib.ShowText(canvas1,600,16,"HISCORE", LEDscore)
+    LEDlib.ShowText(canvas1,80+2*LEDlib.charwidth,26,"SCORE", LEDscore)
+    LEDlib.ShowText(canvas1,480,36,"CENTIPEDE", LEDscore)
+    LEDlib.ShowText(canvas1,940,26,"HISCORE", LEDscore)
+    LEDlib.ShowScore(canvas1,80,50,score, LEDscore)
 
+def addtoscore(amount):
+    global score
+    score = score + amount
+    displayscore()
 
 def centipedetimer():
     movebody()
@@ -233,10 +242,7 @@ mainwin.bind("<KeyPress>", mykey)
 
 LEDscore = []
 
-  
-LEDlib.ShowScore(canvas1,80,40,score, LEDscore)
-LEDlib.ShowText(canvas1,80,16,"SCORE", LEDscore)
-LEDlib.ShowText(canvas1,600,16,"HISCORE", LEDscore)
+displayscore()  
 
 def StartGame():
     global score, LEDscore, GameOver, centipede
