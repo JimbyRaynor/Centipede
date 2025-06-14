@@ -19,11 +19,9 @@ GameOverSprite = 0 # created in EndGame()
 
 # TODO 
 # Comment code for use in Python notes
-# erase polygon marque before drawing, or just draw it once 
-# make unit for saving hiscore
-# make fancy attract screen
 # reduce code
 # simplify code
+# draw ship destroyed  sprite. Use SparkAfterobj for animation
 # BUG: can shot top wall of rocks
 # ADD to Game Over screen: 
 #   click in this window to play (make sure CAPSLOCK is NOT down)
@@ -31,15 +29,16 @@ GameOverSprite = 0 # created in EndGame()
 #   shoot -  space bar
 #   points : boulder 1
 #            centipede 10 (look at Defender/Pacman screens)
-# draw ship destroyed  sprite. Use SparkAfterobj for animation
-# draw centipede part
+# draw centipede part, animate legs
 # add levels
 # add text for SCORE, LEVEL , Jeff Minter style
-# Draw instructions as bitmap in background (very easy, just use putblock)
 # make centipede longer to increase difficulty. Do not make faster
 # only need one centipede list: Just add more sections to list to make more
 # add levels. 
 # try to make this into a slowish strategy game
+# make fancy attract screen, maybe not. Do this last
+# Draw instructions as bitmap in background (very easy, just use putblock)
+# make unit for saving hiscore
 
 
 
@@ -59,11 +58,32 @@ current_script_directory = os.path.dirname(os.path.abspath(__file__))
 os.chdir(current_script_directory)
 
         
-mainwin = Tk(className = "Centipede")
+mainwin = Tk(className = " ")
 mainwin.geometry("1216x800")
 canvas1 = Canvas(mainwin,width = 1216, height = 800, bg = "black")
 canvas1.place(x=0,y=0)
 
+
+
+
+def save_high_score(score, filename="highscore.txt"):
+    with open(filename, "w") as file:  # file is automatically closed when with block is completed
+        file.write(str(score))
+
+def load_high_score(filename="highscore.txt"):
+    try:
+        with open(filename, "r") as file:  # file is automatically closed when with block is completed
+            return int(file.read())
+    except FileNotFoundError:
+        return 0  # Default to 0 if no high score file exists
+    
+def on_close():
+    save_high_score(highscore)  # Save score before exiting
+    mainwin.destroy()  # Close the window
+ 
+mainwin.protocol("WM_DELETE_WINDOW", on_close)  # Bind closing action
+
+highscore = load_high_score()
 
 
 def putrock(canvas,x,y):
@@ -93,6 +113,7 @@ def EndGame():
     setgrid(17,10,0) # need grid clear at (17,10) to place GameOverSprite, o/w putblock fails
     GameOverSprite = putblock(canvas1,18,10,"GameOver.png",dx=0,dy=0)
     GameOver = True
+    save_high_score(highscore)
 
 def movebody():
     for cbody in centipede:
@@ -119,21 +140,25 @@ def movebody():
          cbody.dx, cbody.dy = -olddx, 0 # reverse original direction
 
 
-canvas1.create_polygon([(440,20),(730,20),(730,75),(440,75)], fill = "", outline = "green", width = 8)
-canvas1.create_line(686,54,730,54, fill = "green", width = 8)
-canvas1.create_line(730,50,730,0, fill = "black", width = 8)
 def displayscore():
-    global LEDscore
+    global LEDscore 
     LEDlib.Erasepoints(canvas1,LEDscore)
     LEDscore = []
     LEDlib.ShowText(canvas1,80+2*LEDlib.charwidth,26,"SCORE", LEDscore)
-    LEDlib.ShowText(canvas1,480,36,"CENTIPEDE", LEDscore)
+    LEDlib.ShowColourText(canvas1,480,36,"green","CENTIPEDE", LEDscore)
+    LEDlib.pixellinedouble(canvas1,x=685,y=51,dx=1,dy=0,n=14,colour="light green", LEDpoints = LEDscore)
+    LEDlib.pixellinetriple(canvas1,x=727,y=51,dx=0,dy=1,n=9,colour="light green", LEDpoints = LEDscore)
+    LEDlib.pixellinetriple(canvas1,x=727,y=75,dx=-1,dy=0,n=98,colour="light green", LEDpoints = LEDscore)
+    LEDlib.pixellinetriple(canvas1,x=439,y=75,dx=0,dy=-1,n=21,colour="light green", LEDpoints = LEDscore)
+    LEDlib.pixellinetriple(canvas1,x=439,y=15,dx=1,dy=0,n=98,colour="light green", LEDpoints = LEDscore)
     LEDlib.ShowText(canvas1,940,26,"HISCORE", LEDscore)
     LEDlib.ShowScore(canvas1,80,50,score, LEDscore)
+    LEDlib.ShowScore(canvas1,940-1*LEDlib.charwidth,50,highscore, LEDscore)
 
 def addtoscore(amount):
-    global score
+    global score, highscore
     score = score + amount
+    if score > highscore: highscore = score
     displayscore()
 
 def centipedetimer():
