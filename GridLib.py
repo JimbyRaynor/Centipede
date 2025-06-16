@@ -85,7 +85,7 @@ class Sparkobj: # not needed anymore, but interesting use of threads. Use SparkA
               timer.start()
               self.timers.append(timer)
 
-class SparkAfterobj:
+class SparkAfterobj: # this is an animation object lasting timealive milliseconds. Put images in fimages list.
     def __init__(self,mainwin, canvas,fimages=[],xblock=0,yblock=0,dx=0,dy=0,size=SpriteWidth,timealive=1000):
         self.xblock = xblock # number of blocks (sprites) from left of screen # col
         self.yblock = yblock # number of blocks (sprites) down from top of screen # row
