@@ -5,6 +5,9 @@ import os
 import sys
 import time
 
+
+# double size of graphics 16by16 to 32by32
+
 # to import LEDlib and GridLib in Documents
 # NOT NEEDED: two_levels_up = os.path.abspath(os.path.join('..', '..'))
 sys.path.insert(0, "/home/deck/Documents")
@@ -21,8 +24,10 @@ GameOverSprite = 0 # created in EndGame()
 # Comment code for use in Python notes
 # reduce code
 # simplify code
+# bonus points for creating patterns of blocks? with explosion? Good challenge :)
 # draw ship destroyed  sprite. Use SparkAfterobj for animation
-# BUG: can shot top wall of rocks
+# BUG: can shoot top wall of rocks
+#    : playfield.remove(self) is sometimes called when self is not in playfield
 # ADD to Game Over screen: 
 #   click in this window to play (make sure CAPSLOCK is NOT down)
 #   WASD arrow
@@ -145,12 +150,12 @@ def displayscore():
     LEDlib.Erasepoints(canvas1,LEDscore)
     LEDscore = []
     LEDlib.ShowText(canvas1,80+2*LEDlib.charwidth,26,"SCORE", LEDscore)
-    LEDlib.ShowColourText(canvas1,480,36,"green","CENTIPEDE", LEDscore)
-    LEDlib.pixellinedouble(canvas1,x=685,y=51,dx=1,dy=0,n=14,colour="light green", LEDpoints = LEDscore)
-    LEDlib.pixellinetriple(canvas1,x=727,y=51,dx=0,dy=1,n=9,colour="light green", LEDpoints = LEDscore)
-    LEDlib.pixellinetriple(canvas1,x=727,y=75,dx=-1,dy=0,n=98,colour="light green", LEDpoints = LEDscore)
-    LEDlib.pixellinetriple(canvas1,x=439,y=75,dx=0,dy=-1,n=21,colour="light green", LEDpoints = LEDscore)
-    LEDlib.pixellinetriple(canvas1,x=439,y=15,dx=1,dy=0,n=98,colour="light green", LEDpoints = LEDscore)
+    LEDlib.ShowColourText(canvas1,480,36,"light green","CENTIPEDE", LEDscore)
+    LEDlib.pixellinedouble(canvas1,x=685,y=51,dx=1,dy=0,n=14,colour= "green", LEDpoints = LEDscore)
+    LEDlib.pixellinetriple(canvas1,x=727,y=51,dx=0,dy=1,n=9,colour=  "green", LEDpoints = LEDscore)
+    LEDlib.pixellinetriple(canvas1,x=727,y=75,dx=-1,dy=0,n=98,colour="green", LEDpoints = LEDscore)
+    LEDlib.pixellinetriple(canvas1,x=439,y=75,dx=0,dy=-1,n=21,colour="green", LEDpoints = LEDscore)
+    LEDlib.pixellinetriple(canvas1,x=439,y=15,dx=1,dy=0,n=98,colour= "green", LEDpoints = LEDscore)
     LEDlib.ShowText(canvas1,940,26,"HISCORE", LEDscore)
     LEDlib.ShowScore(canvas1,80,50,score, LEDscore)
     LEDlib.ShowScore(canvas1,940-1*LEDlib.charwidth,50,highscore, LEDscore)
@@ -208,7 +213,7 @@ centipede = []
 
 def createcentipede():
     for i in range(centipedelength,0,-1): # count backwards
-        centipede.append(putblock(canvas1,i,4,"bodyblue.png",dx=1,dy=0,gridtype=20))
+        centipede.append(putblock(canvas1,i,4,"centipede.png",dx=1,dy=0,gridtype=20))
 
 createcentipede()
 
