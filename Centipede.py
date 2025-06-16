@@ -24,8 +24,6 @@ GameOverSprite = 0 # created in EndGame()
 # Comment code for use in Python notes
 # reduce code
 # simplify code
-# bonus points for creating patterns of blocks? with explosion? Good challenge :)
-# draw ship destroyed  sprite. Use SparkAfterobj for animation
 # BUG: can shoot top wall of rocks
 #    : playfield.remove(self) is sometimes called when self is not in playfield
 # ADD to Game Over screen: 
@@ -34,7 +32,6 @@ GameOverSprite = 0 # created in EndGame()
 #   shoot -  space bar
 #   points : boulder 1
 #            centipede 10 (look at Defender/Pacman screens)
-# draw centipede part, animate legs
 # add levels
 # add text for SCORE, LEVEL , Jeff Minter style
 # make centipede longer to increase difficulty. Do not make faster
@@ -50,6 +47,7 @@ GameOverSprite = 0 # created in EndGame()
 # put flowers at bottom, if centipede hits flowers then flower gets quarter eaten and centipede goes up 6 rows
 # Game ends when centipede breaks through
 # use flowers to indicate level number like pacman
+# bonus points for creating patterns of blocks? with explosion? Good challenge :)
 
 
 # put Grid codes HERE:
@@ -120,13 +118,20 @@ def EndGame():
     GameOver = True
     save_high_score(highscore)
 
+def KillShip():
+    x = ship.xblock
+    y = ship.yblock
+    ship.undraw()
+    spark = SparkAfterobj(mainwin, canvas1, fimages=["guna1.png","guna2.png","guna3.png","guna4.png","guna5.png"],xblock=x,yblock=y,dx=0,dy=0,timealive = 1000)
+    mainwin.after(1000,EndGame) 
+
 def movebody():
     for cbody in centipede:
       setgridobj(cbody,0)
       myblock = getblocknext(cbody)
       if myblock != -1:
           if myblock.xblock == ship.xblock and myblock.yblock == ship.yblock:
-             EndGame()
+             KillShip()
       if blockmove(cbody) == -1:  # -1 means cannot move (blocked path), o/w 0 it is moved
          # go down and reverse direction
          olddx =  cbody.dx
@@ -140,7 +145,7 @@ def movebody():
                  blockgoto(cbody,1,15) # hit bottom, so move up 6 rows
                  cbody.dx = 1  
                  cbody.dy = 0 
-                 EndGame()
+                 KillShip()
          blockmove(cbody) # try to move down, something else could be in the way (if so move fails)
          cbody.dx, cbody.dy = -olddx, 0 # reverse original direction
 
@@ -195,7 +200,7 @@ def bullettimer():
 def shiptimer():
     if getgridnext(ship) == 20: # centipede
          ship.move()
-         EndGame() 
+         KillShip()
     elif getgridnext(ship) == 0:
          ship.move()         
     ship.dx = 0
