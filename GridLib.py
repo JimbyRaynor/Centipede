@@ -154,6 +154,16 @@ def putblock(canvas,x,y,stype="",dx=0,dy=0,gridtype=0):
          return block
     else:
         return -1 
+
+def putblockerase(canvas,x,y,stype="",dx=0,dy=0,gridtype=0):
+    testblock = getblock(x,y)
+    if testblock != -1: # block already present at (x,y)
+         removeblock(testblock)
+    block = Spriteobj(canvas,fup=stype,xblock=x,yblock=y,size=SpriteWidth,dx=dx,dy=dy,gridtype=gridtype)
+    playfield.append(block)  # to stop garbage collector removing block!
+    setgrid(x,y,gridtype)
+    return block
+         
     
 def putblockAni(canvas,x,y,fimages=[],dx=0,dy=0,gridtype=0):
     if getgrid(x,y) == 0:  # only one object at each location
@@ -201,4 +211,4 @@ def removeblocknext(gameobj):
 def removeblock(gameobj):
       gameobj.undraw()
       setgrid(gameobj.xblock,gameobj.yblock,0)
-      #playfield.remove(gameobj) done in undraw
+      # playfield.remove(gameobj) done in undraw

@@ -8,6 +8,9 @@ import time
 
 # double size of graphics 16by16 to 32by32
 
+# for endgame delay, explosions, ship dieing, shooting, etc just use mainwin.after(endgame,1000) 
+# to start endgame 1 sec AFTER the explosion is interpreted
+
 # to import LEDlib and GridLib in Documents
 # NOT NEEDED: two_levels_up = os.path.abspath(os.path.join('..', '..'))
 sys.path.insert(0, "/home/deck/Documents")
@@ -15,7 +18,8 @@ import LEDlib
 from GridLib import *
 
 score = 0
-centipedelength = 30
+level = 3
+centipedelength = 6+level
 
 GameOver = True
 GameOverSprite = 0 # created in EndGame()
@@ -33,13 +37,10 @@ GameOverSprite = 0 # created in EndGame()
 #   points : boulder 1
 #            centipede 10 (look at Defender/Pacman screens)
 # add levels
-# add text for SCORE, LEVEL , Jeff Minter style
-# make centipede longer to increase difficulty. Do not make faster
-# only need one centipede list: Just add more sections to list to make more
-# add levels. 
+# make animation block with timer built in, just specify ms to repeat. Use for centipede legs
 # try to make this into a slowish strategy game
 # make fancy attract screen, maybe not. Do this last
-# Draw instructions as bitmap in background (very easy, just use putblock)
+# Draw instructions as bitmap in background (very easy, just use putblock?)
 # make unit for saving hiscore
 
 
@@ -114,7 +115,7 @@ def clearplayfield():
 def EndGame():
     global GameOverSprite, GameOver
     setgrid(17,10,0) # need grid clear at (17,10) to place GameOverSprite, o/w putblock fails
-    GameOverSprite = putblock(canvas1,18,10,"GameOver.png",dx=0,dy=0)
+    GameOverSprite = putblockerase(canvas1,18,10,"GameOver.png",dx=0,dy=0)
     GameOver = True
     save_high_score(highscore)
 
@@ -155,15 +156,17 @@ def displayscore():
     LEDlib.Erasepoints(canvas1,LEDscore)
     LEDscore = []
     LEDlib.ShowText(canvas1,80+2*LEDlib.charwidth,26,"SCORE", LEDscore)
+    LEDlib.ShowScore(canvas1,80,50,score, LEDscore)
     LEDlib.ShowColourText(canvas1,480,36,"light green","CENTIPEDE", LEDscore)
     LEDlib.pixellinedouble(canvas1,x=685,y=51,dx=1,dy=0,n=14,colour= "green", LEDpoints = LEDscore)
     LEDlib.pixellinetriple(canvas1,x=727,y=51,dx=0,dy=1,n=9,colour=  "green", LEDpoints = LEDscore)
     LEDlib.pixellinetriple(canvas1,x=727,y=75,dx=-1,dy=0,n=98,colour="green", LEDpoints = LEDscore)
     LEDlib.pixellinetriple(canvas1,x=439,y=75,dx=0,dy=-1,n=21,colour="green", LEDpoints = LEDscore)
     LEDlib.pixellinetriple(canvas1,x=439,y=15,dx=1,dy=0,n=98,colour= "green", LEDpoints = LEDscore)
-    LEDlib.ShowText(canvas1,940,26,"HISCORE", LEDscore)
-    LEDlib.ShowScore(canvas1,80,50,score, LEDscore)
-    LEDlib.ShowScore(canvas1,940-1*LEDlib.charwidth,50,highscore, LEDscore)
+    LEDlib.ShowText(canvas1,1020,26,"HISCORE", LEDscore)
+    LEDlib.ShowScore(canvas1,1020-1*LEDlib.charwidth,50,highscore, LEDscore)
+    LEDlib.ShowText(canvas1,810,26,"LEVEL", LEDscore)
+    LEDlib.ShowScore(canvas1,810+1.5*LEDlib.charwidth,50,level, LEDscore, numzeros = 2)
 
 def addtoscore(amount):
     global score, highscore
@@ -176,6 +179,7 @@ def centipedetimer():
     if not GameOver: mainwin.after(300,centipedetimer)
 
 def bullettimer():
+    global level, centipedelength
     if len(bullets) == 0: return
     for bullet in bullets.copy():
       if (getgridnext(bullet) == 0) and (bullet.yblock > 1):
@@ -192,7 +196,11 @@ def bullettimer():
               centipede.remove(c)
               removeblocknext(bullet) # this will remove centipede part from playfield
               putrock(canvas1,bullet.xblock+bullet.dx,bullet.yblock+bullet.dy)
-              addtoscore(10)  
+              addtoscore(10) 
+              if len(centipede) == 0:
+                 level = level + 1
+                 centipedelength = 6+level
+                 createcentipede()
          removeblock(bullet)        
          bullets.remove(bullet)
     if not GameOver: mainwin.after(30,bullettimer)  
@@ -218,7 +226,11 @@ centipede = []
 
 def createcentipede():
     for i in range(centipedelength,0,-1): # count backwards
-        centipede.append(putblock(canvas1,i,4,"centipede.png",dx=1,dy=0,gridtype=20))
+        centipede.append(putblockerase(canvas1,i,4,"centipede.png",dx=1,dy=0,gridtype=20))
+        if level >= 2:
+           centipede.append(putblockerase(canvas1,i+25,4,"centipede.png",dx=1,dy=0,gridtype=20))
+        if level >= 3:
+           centipede.append(putblockerase(canvas1,i,5,"centipede.png",dx=1,dy=0,gridtype=20))
 
 createcentipede()
 
