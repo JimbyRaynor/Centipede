@@ -18,37 +18,44 @@ import LEDlib
 from GridLib import *
 
 score = 0
-level = 3
-centipedelength = 6+level
+level = 1
+centipedelength = 5+level
 
 GameOver = True
 GameOverSprite = 0 # created in EndGame()
 
+
+# NOTE common tags:
+# FIXME
+# HACK 
+# XXX draws attention to potential buggy code
 # TODO 
 # Comment code for use in Python notes
 # reduce code
 # simplify code
-# BUG: can shoot top wall of rocks
-#    : playfield.remove(self) is sometimes called when self is not in playfield
+# add sound effects
+# need bombs
+# centipedes need different colors
+#    create with XX or X    or XXX  etc
+#                      
+# 
+# BUG : playfield.remove(self) is sometimes called when self is not in playfield
+# XXX : centipede disappears from screen but no new level !
+
 # ADD to Game Over screen: 
 #   click in this window to play (make sure CAPSLOCK is NOT down)
 #   WASD arrow
 #   shoot -  space bar
 #   points : boulder 1
 #            centipede 10 (look at Defender/Pacman screens)
-# add levels
 # make animation block with timer built in, just specify ms to repeat. Use for centipede legs
 # try to make this into a slowish strategy game
 # make fancy attract screen, maybe not. Do this last
 # Draw instructions as bitmap in background (very easy, just use putblock?)
 # make unit for saving hiscore
-
-
-
 # put flowers at bottom, if centipede hits flowers then flower gets quarter eaten and centipede goes up 6 rows
 # Game ends when centipede breaks through
-# use flowers to indicate level number like pacman
-# bonus points for creating patterns of blocks? with explosion? Good challenge :)
+
 
 
 # put Grid codes HERE:
@@ -91,7 +98,7 @@ highscore = load_high_score()
 
 
 def putrock(canvas,x,y):
-    putblockAni(canvas,x=x,y=y,fimages=["rock9.png","rock8.png","rock7.png","rock6.png","rock5.png","rock4.png","rock3.png","rock2.png","rock.png"],gridtype=9)
+    putblockAni(canvas,x=x,y=y,fimages=["rock9.png","rock8.png","rock7.png","rock6.png","rock5.png","rock4.png","rock3.png","rock2.png","rock.png"],gridtype=8)
 
 def createplayfield():
     for i in range(38):
@@ -182,13 +189,13 @@ def bullettimer():
     global level, centipedelength
     if len(bullets) == 0: return
     for bullet in bullets.copy():
-      if (getgridnext(bullet) == 0) and (bullet.yblock > 1):
+      if (getgridnext(bullet) == 0):
          blockmove(bullet)
       else:
-         if getgridnext(bullet) in [1,2,3,4,5,6,7,8,9]  and (bullet.yblock > 1): # hit boulder
+         if getgridnext(bullet) in [1,2,3,4,5,6,7,8,9]  and (bullet.yblock > 4): # hit boulder
                 rock = getblocknext(bullet)
                 rock.changeimagenum(getgridnext(bullet)-2)
-                if changegridnext(bullet, -1) == 0:
+                if changegridnext(bullet, -2) == 0:
                    removeblocknext(bullet) 
                 addtoscore(1)
          if getgridnext(bullet) == 20: # hit centipede
@@ -200,6 +207,7 @@ def bullettimer():
               if len(centipede) == 0:
                  level = level + 1
                  centipedelength = 6+level
+                 if centipedelength > 11: centipedelength = 11
                  createcentipede()
          removeblock(bullet)        
          bullets.remove(bullet)
@@ -227,10 +235,12 @@ centipede = []
 def createcentipede():
     for i in range(centipedelength,0,-1): # count backwards
         centipede.append(putblockerase(canvas1,i,4,"centipede.png",dx=1,dy=0,gridtype=20))
-        if level >= 2:
-           centipede.append(putblockerase(canvas1,i+25,4,"centipede.png",dx=1,dy=0,gridtype=20))
         if level >= 3:
+           centipede.append(putblockerase(canvas1,i+25,4,"centipede.png",dx=1,dy=0,gridtype=20))
+        if level >= 6:
            centipede.append(putblockerase(canvas1,i,5,"centipede.png",dx=1,dy=0,gridtype=20))
+        if level >= 8:
+           centipede.append(putblockerase(canvas1,i+25,5,"centipede.png",dx=1,dy=0,gridtype=20))
 
 createcentipede()
 
