@@ -18,8 +18,8 @@ import LEDlib
 from GridLib import *
 
 score = 0
-level = 1
-centipedelength = 5+level
+level = 3
+centipedelength = 6
 
 GameOver = True
 GameOverSprite = 0 # created in EndGame()
@@ -203,7 +203,7 @@ def bullettimer():
               centipede.remove(c)
               removeblocknext(bullet) # this will remove centipede part from playfield
               putrock(canvas1,bullet.xblock+bullet.dx,bullet.yblock+bullet.dy)
-              addtoscore(10) 
+              addtoscore(10*level) 
               if len(centipede) == 0:
                  level = level + 1
                  centipedelength = 6+level
@@ -232,15 +232,19 @@ createplayfield()
 
 centipede = [] 
 
+def putcentipart(x,y,dx,dy,delay):
+    centipede.append(putblockeraseAni(mainwin, canvas = canvas1,x=x,y=y,fimages=["centipede.png","centipede2.png"],dx=dx,dy=dy,gridtype=20,delay = delay))
+
+
 def createcentipede():
     for i in range(centipedelength,0,-1): # count backwards
-        centipede.append(putblockerase(canvas1,i,4,"centipede.png",dx=1,dy=0,gridtype=20))
+        putcentipart(i,4,dx=1,dy=0,delay=100)
         if level >= 3:
-           centipede.append(putblockerase(canvas1,i+25,4,"centipede.png",dx=1,dy=0,gridtype=20))
+           putcentipart(i+25,4,dx=1,dy=0,delay=100)
         if level >= 6:
-           centipede.append(putblockerase(canvas1,i,5,"centipede.png",dx=1,dy=0,gridtype=20))
+           putcentipart(i,5,dx=1,dy=0,delay=100)
         if level >= 8:
-           centipede.append(putblockerase(canvas1,i+25,5,"centipede.png",dx=1,dy=0,gridtype=20))
+           putcentipart(i+25,5,dx=1,dy=0,delay=100)
 
 createcentipede()
 

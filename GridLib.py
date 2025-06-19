@@ -44,6 +44,45 @@ class Spriteobj:
         if n < len(self.images):
            self.canvas.itemconfigure(self.sprite,image=self.images[n])
       
+class SpriteobjAni:
+    def __init__(self, mainwin, canvas,fimages=[],xblock=0,yblock=0,dx=0,dy=0,gridtype=0,size=SpriteWidth, delay = 100):
+        self.xblock = xblock # number of blocks (sprites) from left of screen # col
+        self.yblock = yblock # number of blocks (sprites) down from top of screen # row
+        self.size = size
+        self.gridtype = gridtype
+        self.dx = dx # 0,1,-1   dx = 1 means move one block right
+        self.dy = dy # 0,1,-1   dy = 1 means move one block down
+        self.canfire = False;
+        self.canvas = canvas
+        self.mainwin = mainwin
+        self.images = []
+        self.currentimageindex = 0
+        self.delay = delay
+        for f in fimages:
+          self.images.append(PhotoImage(file=f))
+        if len(fimages) > 0:
+            self.sprite = canvas.create_image(0,0,image=self.images[len(fimages)-1])
+        self.canvas.move(self.sprite, (xblock+0.5)*size,(yblock+0.5)*size)
+        self.changeimage()
+    def move(self):
+        self.xblock = self.xblock + self.dx
+        self.yblock = self.yblock + self.dy
+        self.canvas.move(self.sprite,self.dx*self.size,self.dy*self.size)
+    def goto(self,xblock, yblock):
+        self.xblock = xblock
+        self.yblock = yblock 
+        self.canvas.coords(self.sprite,(xblock+0.5)*self.size,(yblock+0.5)*self.size)
+    def undraw(self):
+        self.canvas.delete(self.sprite)
+        playfield.remove(self)
+    def changeimage(self):
+        self.canvas.itemconfigure(self.sprite,image=self.images[self.currentimageindex])
+        self.currentimageindex = self.currentimageindex + 1
+        if self.currentimageindex  >= len(self.images):
+            self.currentimageindex  = 0
+        self.mainwin.after(self.delay,self.changeimage)
+
+
 
 class Sparkobj: # not needed anymore, but interesting use of threads. Use SparkAfterobj now
     def __init__(self, canvas,fimages=[],xblock=0,yblock=0,dx=0,dy=0,size=SpriteWidth,timealive=1.0):
@@ -154,12 +193,21 @@ def putblock(canvas,x,y,stype="",dx=0,dy=0,gridtype=0):
          return block
     else:
         return -1 
-
-def putblockerase(canvas,x,y,stype="",dx=0,dy=0,gridtype=0):
+    
+def putblockerase(canvas,x,y,fimages=[],dx=0,dy=0, gridtype= 0):
     testblock = getblock(x,y)
     if testblock != -1: # block already present at (x,y)
          removeblock(testblock)
-    block = Spriteobj(canvas,fup=stype,xblock=x,yblock=y,size=SpriteWidth,dx=dx,dy=dy,gridtype=gridtype)
+    block = Spriteobj(canvas,fimages,xblock=x,yblock=y,size=SpriteWidth,dx=dx,dy=dy,gridtype=gridtype)
+    playfield.append(block)  # to stop garbage collector removing block!
+    setgrid(x,y,gridtype)
+    return block
+
+def putblockeraseAni(mainwin,canvas,x,y,fimages=[],dx=0,dy=0,gridtype=0, delay = 100):
+    testblock = getblock(x,y)
+    if testblock != -1: # block already present at (x,y)
+         removeblock(testblock)
+    block = SpriteobjAni(mainwin=mainwin,canvas=canvas,fimages = fimages,xblock=x,yblock=y,size=SpriteWidth,dx=dx,dy=dy,gridtype=gridtype, delay=delay)
     playfield.append(block)  # to stop garbage collector removing block!
     setgrid(x,y,gridtype)
     return block
