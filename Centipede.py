@@ -18,7 +18,7 @@ import LEDlib
 from GridLib import *
 
 score = 0
-level = 3
+level = 1
 centipedelength = 6
 
 GameOver = True
@@ -33,10 +33,12 @@ GameOverSprite = 0 # created in EndGame()
 # Comment code for use in Python notes
 # reduce code
 # simplify code
+# flowers at bottom
 # add sound effects
-# need bombs
-# centipedes need different colors
+# add bombs
 #    create with XX or X    or XXX  etc
+#                      X
+# centipedes need different colors
 #                      
 # 
 # BUG : playfield.remove(self) is sometimes called when self is not in playfield
@@ -47,14 +49,14 @@ GameOverSprite = 0 # created in EndGame()
 #   WASD arrow
 #   shoot -  space bar
 #   points : boulder 1
-#            centipede 10 (look at Defender/Pacman screens)
-# make animation block with timer built in, just specify ms to repeat. Use for centipede legs
+#            centipede 10*level (look at Defender/Pacman screens)
 # try to make this into a slowish strategy game
 # make fancy attract screen, maybe not. Do this last
 # Draw instructions as bitmap in background (very easy, just use putblock?)
 # make unit for saving hiscore
 # put flowers at bottom, if centipede hits flowers then flower gets quarter eaten and centipede goes up 6 rows
 # Game ends when centipede breaks through
+# Maybe: Queen at top spawns centipede. Has defense wall like Phoenix, but why destroy?
 
 
 
@@ -120,8 +122,7 @@ def clearplayfield():
         setgridobj(part,0)
 
 def EndGame():
-    global GameOverSprite, GameOver
-    setgrid(17,10,0) # need grid clear at (17,10) to place GameOverSprite, o/w putblock fails
+    global GameOverSprite, GameOver, level
     GameOverSprite = putblockerase(canvas1,18,10,"GameOver.png",dx=0,dy=0)
     GameOver = True
     save_high_score(highscore)
@@ -162,18 +163,18 @@ def displayscore():
     global LEDscore 
     LEDlib.Erasepoints(canvas1,LEDscore)
     LEDscore = []
-    LEDlib.ShowText(canvas1,80+2*LEDlib.charwidth,26,"SCORE", LEDscore)
-    LEDlib.ShowScore(canvas1,80,50,score, LEDscore)
+    LEDlib.ShowColourText(canvas1,80+2*LEDlib.charwidth,26,"light green","SCORE", LEDscore)
+    LEDlib.ShowColourScore(canvas1,80,50,"yellow",score, LEDscore)
     LEDlib.ShowColourText(canvas1,480,36,"light green","CENTIPEDE", LEDscore)
     LEDlib.pixellinedouble(canvas1,x=685,y=51,dx=1,dy=0,n=14,colour= "green", LEDpoints = LEDscore)
     LEDlib.pixellinetriple(canvas1,x=727,y=51,dx=0,dy=1,n=9,colour=  "green", LEDpoints = LEDscore)
     LEDlib.pixellinetriple(canvas1,x=727,y=75,dx=-1,dy=0,n=98,colour="green", LEDpoints = LEDscore)
     LEDlib.pixellinetriple(canvas1,x=439,y=75,dx=0,dy=-1,n=21,colour="green", LEDpoints = LEDscore)
     LEDlib.pixellinetriple(canvas1,x=439,y=15,dx=1,dy=0,n=98,colour= "green", LEDpoints = LEDscore)
-    LEDlib.ShowText(canvas1,1020,26,"HISCORE", LEDscore)
-    LEDlib.ShowScore(canvas1,1020-1*LEDlib.charwidth,50,highscore, LEDscore)
-    LEDlib.ShowText(canvas1,810,26,"LEVEL", LEDscore)
-    LEDlib.ShowScore(canvas1,810+1.5*LEDlib.charwidth,50,level, LEDscore, numzeros = 2)
+    LEDlib.ShowColourText(canvas1,1020,26,"light green","HISCORE", LEDscore)
+    LEDlib.ShowColourScore(canvas1,1020-1*LEDlib.charwidth,50,"yellow",highscore, LEDscore)
+    LEDlib.ShowColourText(canvas1,810,26,"light blue","LEVEL", LEDscore)
+    LEDlib.ShowColourScore(canvas1,810+1.5*LEDlib.charwidth,50,"light blue",level, LEDscore, numzeros = 2)
 
 def addtoscore(amount):
     global score, highscore
@@ -208,6 +209,7 @@ def bullettimer():
                  level = level + 1
                  centipedelength = 6+level
                  if centipedelength > 11: centipedelength = 11
+                 addtoscore(0) # to show updated level
                  createcentipede()
          removeblock(bullet)        
          bullets.remove(bullet)
@@ -306,13 +308,15 @@ LEDscore = []
 displayscore()  
 
 def StartGame():
-    global score, LEDscore, GameOver, centipede
+    global score, LEDscore, GameOver, centipede, level, centipedelength
     GameOver = False
     score = 0
+    level = 1
     addtoscore(0) # to show updated LEDscore
     clearplayfield() 
     createplayfield()
     centipede = []
+    centipedelength = 6
     createcentipede()
     createship()
     centipedetimer()
