@@ -24,7 +24,7 @@ class Spriteobj:
         for f in fimages:
           self.images.append(PhotoImage(file=f))
         if len(fimages) > 0:
-            self.sprite = canvas.create_image(0,0,image=self.images[len(fimages)-1])
+            self.sprite = canvas.create_image(0,0,image=self.images[0])
         if fup != "":
            self.imageup = PhotoImage(file=fup)
            self.sprite = canvas.create_image(0,0,image=self.imageup)
@@ -61,7 +61,7 @@ class SpriteobjAni:
         for f in fimages:
           self.images.append(PhotoImage(file=f))
         if len(fimages) > 0:
-            self.sprite = canvas.create_image(0,0,image=self.images[len(fimages)-1])
+            self.sprite = canvas.create_image(0,0,image=self.images[0])
         self.canvas.move(self.sprite, (xblock+0.5)*size,(yblock+0.5)*size)
         self.changeimage()
     def move(self):
@@ -180,6 +180,11 @@ def setgridnext(gameobj,gtype):
 def changegridnext(gameobj,dchange):
     valuegrid = getgridnext(gameobj)+dchange
     setgridNoError(gameobj.xblock+gameobj.dx,gameobj.yblock+gameobj.dy,valuegrid)
+    return valuegrid
+
+def changegrid(gameobj,dchange):
+    valuegrid = getgridobj(gameobj)+dchange
+    setgridNoError(gameobj.xblock,gameobj.yblock,valuegrid)
     return valuegrid
 
 def setgridobj(gameobj,gtype):
