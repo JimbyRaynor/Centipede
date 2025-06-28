@@ -17,9 +17,12 @@ sys.path.insert(0, "/home/deck/Documents")
 import LEDlib
 from GridLib import *
 
+LEVELSTART = 10
+CLENGTHSTART = 10
+
 score = 0
-level = 1
-centipedelength = 6
+level = LEVELSTART
+centipedelength = CLENGTHSTART
 
 GameOver = True
 GameOverSprite = 0 # created in EndGame()
@@ -27,6 +30,7 @@ GameOverSprite = 0 # created in EndGame()
 
 # NOTE common tags:
 # FIXME
+# BUG
 # HACK 
 # XXX draws attention to potential buggy code
 # TODO 
@@ -38,12 +42,12 @@ GameOverSprite = 0 # created in EndGame()
 # add bombs
 #    create with XX or X    or XXX  etc
 #                      X
-# centipedes need different colors
+# centipedes need different colors, determined by length of centipede, use a list to choose length, colour
 #                      
 # 
 # BUG : playfield.remove(self) is sometimes called when self is not in playfield
 # XXX : centipede disappears from screen but no new level !
-
+# BUG : Move to top. Fire removes top rock.
 # ADD to Game Over screen: 
 #   click in this window to play (make sure CAPSLOCK is NOT down)
 #   WASD arrow
@@ -54,7 +58,7 @@ GameOverSprite = 0 # created in EndGame()
 # make fancy attract screen, maybe not. Do this last
 # Draw instructions as bitmap in background (very easy, just use putblock?)
 # make unit for saving hiscore
-# put flowers at bottom, if centipede hits flowers then flower gets quarter eaten and centipede goes up 6 rows
+# put flowers at bottom, if centipede hits flowers then flower gets quarter eaten and centipede goes to top
 # Game ends when centipede breaks through
 # Maybe: Queen at top spawns centipede. Has defense wall like Phoenix, but why destroy?
 
@@ -65,6 +69,7 @@ GameOverSprite = 0 # created in EndGame()
 # boulders = 1,2,3,4,5,6,7,8,9
 # ship = NOT ASSIGNED
 # centipede = 20 
+# Flower = 100-103
 
 # for loading files (.png), set current directory = location of this python script (needed for Linux)
 current_script_directory = os.path.dirname(os.path.abspath(__file__))
@@ -100,13 +105,18 @@ highscore = load_high_score()
 
 
 def putrock(canvas,x,y):
-    putblockAni(canvas,x=x,y=y,fimages=["rock9.png","rock8.png","rock7.png","rock6.png","rock5.png","rock4.png","rock3.png","rock2.png","rock.png"],gridtype=8)
+    putblockAni(canvas,x=x,y=y,fimages=["rock.png","rock2.png","rock3.png","rock4.png","rock5.png","rock6.png","rock7.png","rock8.png","rock9.png"],gridtype=2)
+
+def putflower(canvas,x,y):
+    putblockAni(canvas,x=x,y=y,fimages=["flower1.png","flower2.png","flower3.png","flower4.png","flower5.png"],gridtype=101)
+
 
 def createplayfield():
     for i in range(38):
         putrock(canvas1,x=i,y=0+3)
-        putrock(canvas1,i,21+3)
-    for i in range(21):
+        if i > 0 and i < 37:
+            putflower(canvas1,i,21+3)
+    for i in range(22):
         putrock(canvas1,0,i+3)
         putrock(canvas1,37,i+3)
     for i in range(1,38):
@@ -152,9 +162,17 @@ def movebody():
                  removeblock(myblock) # remove this block because it is in the way
                else:
                  blockgoto(cbody,1,15) # hit bottom, so move up 6 rows
-                 cbody.dx = 1  
+                 cbody.dx = 1  # erase put to remove rock
                  cbody.dy = 0 
                  KillShip()
+             if myblock.gridtype == 100: # no flower left
+                 KillShip()
+             if myblock.gridtype in [105,104,103,102,101]: # flower
+                myblock.changeimagenum(myblock.gridtype-101+1)
+                myblock.gridtype = changegrid(myblock,1)
+                print("Hit flower")
+                print(myblock.gridtype)
+                print(getgridobj(myblock))
          blockmove(cbody) # try to move down, something else could be in the way (if so move fails)
          cbody.dx, cbody.dy = -olddx, 0 # reverse original direction
 
@@ -195,8 +213,8 @@ def bullettimer():
       else:
          if getgridnext(bullet) in [1,2,3,4,5,6,7,8,9]  and (bullet.yblock > 4): # hit boulder
                 rock = getblocknext(bullet)
-                rock.changeimagenum(getgridnext(bullet)-2)
-                if changegridnext(bullet, -2) == 0:
+                rock.changeimagenum(getgridnext(bullet)+2)
+                if changegridnext(bullet, +2) == 8:
                    removeblocknext(bullet) 
                 addtoscore(1)
          if getgridnext(bullet) == 20: # hit centipede
@@ -228,25 +246,25 @@ def shiptimer():
 def reload():
     ship.canfire = True
 
-
+ 
 
 createplayfield()
 
 centipede = [] 
 
-def putcentipart(x,y,dx,dy,delay):
-    centipede.append(putblockeraseAni(mainwin, canvas = canvas1,x=x,y=y,fimages=["centipede.png","centipede2.png"],dx=dx,dy=dy,gridtype=20,delay = delay))
+def putcentipart(x,y,dx,dy):
+    centipede.append(putblockeraseAni(mainwin, canvas = canvas1,x=x,y=y,fimages=["centipede.png","centipede2.png"],dx=dx,dy=dy,gridtype=20,delay = 300))
 
 
 def createcentipede():
     for i in range(centipedelength,0,-1): # count backwards
-        putcentipart(i,4,dx=1,dy=0,delay=100)
+        putcentipart(i,4,dx=1,dy=0)
         if level >= 3:
-           putcentipart(i+25,4,dx=1,dy=0,delay=100)
+           putcentipart(i+25,4,dx=1,dy=0)
         if level >= 6:
-           putcentipart(i,5,dx=1,dy=0,delay=100)
+           putcentipart(i,5,dx=1,dy=0)
         if level >= 8:
-           putcentipart(i+25,5,dx=1,dy=0,delay=100)
+           putcentipart(i+25,5,dx=1,dy=0)
 
 createcentipede()
 
@@ -311,12 +329,12 @@ def StartGame():
     global score, LEDscore, GameOver, centipede, level, centipedelength
     GameOver = False
     score = 0
-    level = 1
+    level = LEVELSTART
     addtoscore(0) # to show updated LEDscore
     clearplayfield() 
     createplayfield()
     centipede = []
-    centipedelength = 6
+    centipedelength = CLENGTHSTART
     createcentipede()
     createship()
     centipedetimer()
