@@ -38,6 +38,7 @@ GameOverSprite = 0 # created in EndGame()
 # reduce code
 # simplify code
 # flowers at bottom
+#    as soon as centipede reaches last row, bite flower immediately underneath
 # add sound effects
 # add bombs
 #    create with XX or X    or XXX  etc
@@ -47,7 +48,7 @@ GameOverSprite = 0 # created in EndGame()
 # 
 # BUG : playfield.remove(self) is sometimes called when self is not in playfield
 # XXX : centipede disappears from screen but no new level !
-# BUG : Move to top. Fire removes top rock.
+# BUG : Sometimes bullets are frozen!
 # ADD to Game Over screen: 
 #   click in this window to play (make sure CAPSLOCK is NOT down)
 #   WASD arrow
@@ -142,15 +143,28 @@ def KillShip():
     y = ship.yblock
     ship.undraw()
     spark = SparkAfterobj(mainwin, canvas1, fimages=["guna1.png","guna2.png","guna3.png","guna4.png","guna5.png"],xblock=x,yblock=y,dx=0,dy=0,timealive = 1000)
+    ship.xblock = 0 # to stop multiple kills by centipede!
+    ship.yblock = 0
     mainwin.after(1000,EndGame) 
 
 def movebody():
     for cbody in centipede:
       setgridobj(cbody,0)
       myblock = getblocknext(cbody)
+      if cbody.yblock == 23: # eat flower
+             cbody.dx, cbody.dy = 0,1
+             myblock = getblocknext(cbody) 
+             myblock.changeimagenum(myblock.gridtype-101+1)
+             myblock.gridtype = changegrid(myblock,1)
+             if myblock.gridtype > 105:
+                 if ship.xblock != 0: # avoid mulitple kills
+                     KillShip()
+             blockerasegoto(cbody,1,10) # hit bottom, so move up
+             cbody.dx = 1  
+             cbody.dy = 0 
       if myblock != -1:
           if myblock.xblock == ship.xblock and myblock.yblock == ship.yblock:
-             KillShip()
+             KillShip()  
       if blockmove(cbody) == -1:  # -1 means cannot move (blocked path), o/w 0 it is moved
          # go down and reverse direction
          olddx =  cbody.dx
@@ -158,21 +172,7 @@ def movebody():
          myblock = getblocknext(cbody) # see what is below. Is it a boulder?
          if myblock != -1:  # okay to check since (if found) myblock does not have type <int> (and so is not -1)
              if myblock.gridtype in [1,2,3,4,5,6,7,8,9]: # a boulder
-               if myblock.yblock < 21:
                  removeblock(myblock) # remove this block because it is in the way
-               else:
-                 blockgoto(cbody,1,15) # hit bottom, so move up 6 rows
-                 cbody.dx = 1  # erase put to remove rock
-                 cbody.dy = 0 
-                 KillShip()
-             if myblock.gridtype == 100: # no flower left
-                 KillShip()
-             if myblock.gridtype in [105,104,103,102,101]: # flower
-                myblock.changeimagenum(myblock.gridtype-101+1)
-                myblock.gridtype = changegrid(myblock,1)
-                print("Hit flower")
-                print(myblock.gridtype)
-                print(getgridobj(myblock))
          blockmove(cbody) # try to move down, something else could be in the way (if so move fails)
          cbody.dx, cbody.dy = -olddx, 0 # reverse original direction
 
@@ -236,6 +236,7 @@ def bullettimer():
 def shiptimer():
     if getgridnext(ship) == 20: # centipede
          ship.move()
+         print("kill ship in shiptimer")
          KillShip()
     elif getgridnext(ship) == 0:
          ship.move()         
@@ -258,7 +259,7 @@ def putcentipart(x,y,dx,dy):
 
 def createcentipede():
     for i in range(centipedelength,0,-1): # count backwards
-        putcentipart(i,4,dx=1,dy=0)
+        putcentipart(i,20,dx=1,dy=0)
         if level >= 3:
            putcentipart(i+25,4,dx=1,dy=0)
         if level >= 6:
@@ -272,7 +273,7 @@ bullets = []
 ship = 0
 def createship():
     global ship
-    ship = putblock(canvas1,20,20,"gun3.png",dx=0,dy=0)
+    ship = putblock(canvas1,20,20,"gun3.png",dx=0,dy=0) # adds ship to playfield
     ship.canfire = True
 
 createship()
@@ -304,10 +305,10 @@ def mykey(event):
              bullets.append(bullet)
              mainwin.after(30,bullettimer) 
            else:
-             if getgridobj(blockabove) in [1,2,3,4,5,6,7,8,9]: # boulder
+             if getgridobj(blockabove) in [1,2,3,4,5,6,7,8,9] and (blockabove.yblock > 4): # boulder
                 rock = getblocknext(blockabove)
-                rock.changeimagenum(getgridnext(blockabove)-2)
-                if changegridnext(blockabove, -1) == 0:
+                rock.changeimagenum(getgridnext(blockabove)+2)
+                if changegridnext(blockabove, +2) == 8:
                    removeblocknext(blockabove) 
                 addtoscore(1)
              if getgridobj(blockabove) == 20: # hit centipede

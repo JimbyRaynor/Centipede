@@ -244,6 +244,12 @@ def blockgoto(gameobj,x,y):
          return 0
     else:
          return -1 
+    
+def blockerasegoto(gameobj,x,y):    
+     testblock = getblock(x,y)
+     if testblock != -1: # block already present at (x,y)
+         removeblock(testblock)
+     blockgoto(gameobj,x,y)
 
 def getblock(x,y):
     for block in playfield:
