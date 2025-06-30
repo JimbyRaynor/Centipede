@@ -37,8 +37,8 @@ GameOverSprite = 0 # created in EndGame()
 # Comment code for use in Python notes
 # reduce code
 # simplify code
-# flowers at bottom
-#    as soon as centipede reaches last row, bite flower immediately underneath
+# expolision at bottom when centipede reaches bottom of window
+# test each level. From level 10 onwards a centipede starts at row 19
 # add sound effects
 # add bombs
 #    create with XX or X    or XXX  etc
@@ -48,7 +48,10 @@ GameOverSprite = 0 # created in EndGame()
 # 
 # BUG : playfield.remove(self) is sometimes called when self is not in playfield
 # XXX : centipede disappears from screen but no new level !
-# BUG : Sometimes bullets are frozen!
+# BUG : Sometimes bullets are frozen. This happens in bullettimer centipede.remove(c) is called when c is not in list
+#       This error continues after gameend/restart !
+#      ALSO occurs with getgridnext(bullet) : Grid[y][x] list index out of range
+#      AND playfield.remove(self) self not in list--   in - - removeblock(bullet)
 # ADD to Game Over screen: 
 #   click in this window to play (make sure CAPSLOCK is NOT down)
 #   WASD arrow
@@ -106,10 +109,10 @@ highscore = load_high_score()
 
 
 def putrock(canvas,x,y):
-    putblockAni(canvas,x=x,y=y,fimages=["rock.png","rock2.png","rock3.png","rock4.png","rock5.png","rock6.png","rock7.png","rock8.png","rock9.png"],gridtype=2)
+    putblockAni(canvas,x=x,y=y,fimages=["rock.png","rock2.png","rock3.png","rock4.png","rock5.png","rock6.png","rock7.png","rock8.png","rock9.png"],gridtype=2, objecttype = "rock")
 
 def putflower(canvas,x,y):
-    putblockAni(canvas,x=x,y=y,fimages=["flower1.png","flower2.png","flower3.png","flower4.png","flower5.png"],gridtype=101)
+    putblockAni(canvas,x=x,y=y,fimages=["flower1.png","flower2.png","flower3.png","flower4.png","flower5.png"],gridtype=101, objecttype = "flower")
 
 
 def createplayfield():
@@ -134,7 +137,7 @@ def clearplayfield():
 
 def EndGame():
     global GameOverSprite, GameOver, level
-    GameOverSprite = putblockerase(canvas1,18,10,"GameOver.png",dx=0,dy=0)
+    GameOverSprite = putblockerase(canvas1,18,10,"GameOver.png",dx=0,dy=0,objecttype = "Title Screen")
     GameOver = True
     save_high_score(highscore)
 
@@ -254,7 +257,7 @@ createplayfield()
 centipede = [] 
 
 def putcentipart(x,y,dx,dy):
-    centipede.append(putblockeraseAni(mainwin, canvas = canvas1,x=x,y=y,fimages=["centipede.png","centipede2.png"],dx=dx,dy=dy,gridtype=20,delay = 300))
+    centipede.append(putblockeraseAni(mainwin, canvas = canvas1,x=x,y=y,fimages=["centipede.png","centipede2.png"],dx=dx,dy=dy,gridtype=20,delay = 300, objecttype = "centipede"))
 
 
 def createcentipede():
@@ -273,7 +276,7 @@ bullets = []
 ship = 0
 def createship():
     global ship
-    ship = putblock(canvas1,20,20,"gun3.png",dx=0,dy=0) # adds ship to playfield
+    ship = putblock(canvas1,20,20,"gun3.png",dx=0,dy=0,objecttype = "ship") # adds ship to playfield
     ship.canfire = True
 
 createship()
@@ -281,6 +284,8 @@ createship()
 def mykey(event):
     global GameOver        
     key = event.keysym
+    if key.isupper():
+        print("Warning: turn off caps lock")
     if key == "1" and GameOver:
        StartGame()
     if GameOver: return
@@ -301,7 +306,7 @@ def mykey(event):
            spark = SparkAfterobj(mainwin, canvas1, fimages=["tongue1.png","tongue2.png","tongue3.png","tongue4.png","tongue5.png","tongue6.png",],xblock=ship.xblock,yblock=ship.yblock,dx=0,dy=-31,timealive = 100)
            blockabove =  getblock(ship.xblock,ship.yblock-1)
            if blockabove == -1:
-             bullet = putblock(canvas1,ship.xblock,ship.yblock-1,"bullet.png",dx=0,dy=-1,gridtype=30)
+             bullet = putblock(canvas1,ship.xblock,ship.yblock-1,"bullet.png",dx=0,dy=-1,gridtype=30,objecttype = "bullet")
              bullets.append(bullet)
              mainwin.after(30,bullettimer) 
            else:
