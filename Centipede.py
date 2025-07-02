@@ -36,6 +36,7 @@ GameOverSprite = 0 # created in EndGame()
 # TODO 
 # Comment code for use in Python notes
 # reduce/simplify code while looking for bugs
+# explode centipede part when hit
 # explosion at bottom when centipede reaches bottom of window
 # attack animatiom if ship is hit by centipede
 # test each level. From level 10 onwards a centipede starts at row 19
@@ -146,7 +147,28 @@ def KillShip():
     ship.yblock = 0
     mainwin.after(1000,EndGame) 
 
+def killcentipedeoverlap():
+    removallist = []
+    for c1 in centipede:
+        for c2 in centipede:
+            if c1 != c2 and  c1.xblock == c2.xblock and c1.yblock == c2.yblock:
+                removallist.append(c1)          
+    removalset = set(removallist) # remove duplicates
+    for c in removalset:
+      removeblock(c)
+      centipede.remove(c)
+      print("centipede collision!! ", len(centipede))
+      #print("centipede length = ", len(centipede))
+
 def movebody():
+    global level, centipedelength
+    killcentipedeoverlap()
+    if len(centipede) == 0:
+                 level = level + 1
+                 centipedelength = 6+level
+                 if centipedelength > 11: centipedelength = 11
+                 addtoscore(0) # to show updated level
+                 createcentipede()
     for cbody in centipede:
       setgridobj(cbody,0)
       myblock = getblocknext(cbody)
@@ -219,16 +241,10 @@ def bullettimer():
          if getgridnext(bullet) == 20: # hit centipede
               c = getblocknext(bullet)
               centipede.remove(c)
-              print("Centipede parts left = ", len(centipede))
+              #print("Centipede parts left = ", len(centipede))
               removeblocknext(bullet) # this will remove centipede part from playfield
               putrock(canvas1,bullet.xblock+bullet.dx,bullet.yblock+bullet.dy)
               addtoscore(10*level) 
-              if len(centipede) == 0:
-                 level = level + 1
-                 centipedelength = 6+level
-                 if centipedelength > 11: centipedelength = 11
-                 addtoscore(0) # to show updated level
-                 createcentipede()
          removeblock(bullet)        
          bullets.remove(bullet)
     if not GameOver: mainwin.after(30,bullettimer)  
@@ -312,8 +328,8 @@ def mykey(event):
                    removeblocknext(blockabove) 
                 addtoscore(1)
              if getgridobj(blockabove) == 20: # hit centipede
-                centipede.remove(blockabove)
                 removeblock(blockabove) # this will remove centipede part from playfield
+                centipede.remove(blockabove)
                 putrock(canvas1,blockabove.xblock,blockabove.yblock)
                 addtoscore(10)
            ship.canfire = False;
