@@ -35,10 +35,11 @@ GameOverSprite = 0 # created in EndGame()
 # XXX draws attention to potential buggy code
 # TODO 
 # Comment code for use in Python notes
-# reduce code
-# simplify code
-# expolision at bottom when centipede reaches bottom of window
+# reduce/simplify code while looking for bugs
+# explosion at bottom when centipede reaches bottom of window
+# attack animatiom if ship is hit by centipede
 # test each level. From level 10 onwards a centipede starts at row 19
+# level intermission screen
 # add sound effects
 # add bombs
 #    create with XX or X    or XXX  etc
@@ -46,24 +47,19 @@ GameOverSprite = 0 # created in EndGame()
 # centipedes need different colors, determined by length of centipede, use a list to choose length, colour
 #                      
 # 
-# BUG : playfield.remove(self) is sometimes called when self is not in playfield
+# BUG : 
 # XXX : centipede disappears from screen but no new level !
-# BUG : Sometimes bullets are frozen. This happens in bullettimer centipede.remove(c) is called when c is not in list
-#       This error continues after gameend/restart !
-#      ALSO occurs with getgridnext(bullet) : Grid[y][x] list index out of range
-#      AND playfield.remove(self) self not in list--   in - - removeblock(bullet)
+#     : it looks like a centipede part can be on top of another part ;)
+# BUG : 
 # ADD to Game Over screen: 
-#   click in this window to play (make sure CAPSLOCK is NOT down)
+#   click in this window to play
 #   WASD arrow
 #   shoot -  space bar
 #   points : boulder 1
 #            centipede 10*level (look at Defender/Pacman screens)
 # try to make this into a slowish strategy game
 # make fancy attract screen, maybe not. Do this last
-# Draw instructions as bitmap in background (very easy, just use putblock?)
 # make unit for saving hiscore
-# put flowers at bottom, if centipede hits flowers then flower gets quarter eaten and centipede goes to top
-# Game ends when centipede breaks through
 # Maybe: Queen at top spawns centipede. Has defense wall like Phoenix, but why destroy?
 
 
@@ -141,7 +137,7 @@ def EndGame():
     GameOver = True
     save_high_score(highscore)
 
-def KillShip():
+def KillShip():  
     x = ship.xblock
     y = ship.yblock
     ship.undraw()
@@ -223,6 +219,7 @@ def bullettimer():
          if getgridnext(bullet) == 20: # hit centipede
               c = getblocknext(bullet)
               centipede.remove(c)
+              print("Centipede parts left = ", len(centipede))
               removeblocknext(bullet) # this will remove centipede part from playfield
               putrock(canvas1,bullet.xblock+bullet.dx,bullet.yblock+bullet.dy)
               addtoscore(10*level) 
@@ -283,9 +280,7 @@ createship()
 
 def mykey(event):
     global GameOver        
-    key = event.keysym
-    if key.isupper():
-        print("Warning: turn off caps lock")
+    key = event.keysym.lower()
     if key == "1" and GameOver:
        StartGame()
     if GameOver: return
@@ -333,6 +328,12 @@ displayscore()
 
 def StartGame():
     global score, LEDscore, GameOver, centipede, level, centipedelength
+    for bullet in bullets.copy():
+        removeblock(bullet)
+        bullets.remove(bullet)
+    for c in centipede.copy():
+        removeblock(c)
+        centipede.remove(c) 
     GameOver = False
     score = 0
     level = LEVELSTART
