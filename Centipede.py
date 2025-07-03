@@ -36,9 +36,9 @@ GameOverSprite = 0 # created in EndGame()
 # TODO 
 # Comment code for use in Python notes
 # reduce/simplify code while looking for bugs
-# explode centipede part when hit
+# explode centipede part when hit use sparkafter
 # explosion at bottom when centipede reaches bottom of window
-# attack animatiom if ship is hit by centipede
+# explosion if ship is hit by centipede
 # test each level. From level 10 onwards a centipede starts at row 19
 # level intermission screen
 # add sound effects
@@ -47,21 +47,15 @@ GameOverSprite = 0 # created in EndGame()
 #                      X
 # centipedes need different colors, determined by length of centipede, use a list to choose length, colour
 #                      
-# 
-# BUG : 
-# XXX : centipede disappears from screen but no new level !
-#     : it looks like a centipede part can be on top of another part ;)
-# BUG : 
 # ADD to Game Over screen: 
 #   click in this window to play
 #   WASD arrow
 #   shoot -  space bar
 #   points : boulder 1
 #            centipede 10*level (look at Defender/Pacman screens)
-# try to make this into a slowish strategy game
+
 # make fancy attract screen, maybe not. Do this last
 # make unit for saving hiscore
-# Maybe: Queen at top spawns centipede. Has defense wall like Phoenix, but why destroy?
 
 
 
@@ -155,8 +149,11 @@ def killcentipedeoverlap():
                 removallist.append(c1)          
     removalset = set(removallist) # remove duplicates
     for c in removalset:
+      x = c.xblock
+      y = c.yblock
       removeblock(c)
       centipede.remove(c)
+      spark = SparkAfterobj(mainwin, canvas1, fimages=["explosion1.png","explosion2.png","explosion3.png"],xblock=x,yblock=y,dx=0,dy=0,timealive = 1000)
       print("centipede collision!! ", len(centipede))
       #print("centipede length = ", len(centipede))
 
@@ -240,10 +237,13 @@ def bullettimer():
                 addtoscore(1)
          if getgridnext(bullet) == 20: # hit centipede
               c = getblocknext(bullet)
+              x = c.xblock
+              y = c.yblock
               centipede.remove(c)
               #print("Centipede parts left = ", len(centipede))
               removeblocknext(bullet) # this will remove centipede part from playfield
               putrock(canvas1,bullet.xblock+bullet.dx,bullet.yblock+bullet.dy)
+              spark = SparkAfterobj(mainwin, canvas1, fimages=["explosion3.png","explosion2.png","explosion1.png"],xblock=x,yblock=y,dx=0,dy=0,timealive = 1000)
               addtoscore(10*level) 
          removeblock(bullet)        
          bullets.remove(bullet)
@@ -328,9 +328,12 @@ def mykey(event):
                    removeblocknext(blockabove) 
                 addtoscore(1)
              if getgridobj(blockabove) == 20: # hit centipede
+                x = blockabove.xblock
+                y = blockabove.yblock
                 removeblock(blockabove) # this will remove centipede part from playfield
                 centipede.remove(blockabove)
                 putrock(canvas1,blockabove.xblock,blockabove.yblock)
+                spark = SparkAfterobj(mainwin, canvas1, fimages=["explosion3.png","explosion2.png","explosion1.png"],xblock=x,yblock=y,dx=0,dy=0,timealive = 1000)
                 addtoscore(10)
            ship.canfire = False;
            mainwin.after(300,reload)
