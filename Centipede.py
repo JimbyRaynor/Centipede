@@ -24,6 +24,13 @@ score = 0
 level = LEVELSTART
 centipedelength = CLENGTHSTART
 
+explosionlist = ["explosion3.png","explosion2.png","explosion1.png"]
+gundielist = ["guna1.png","guna2.png","guna3.png","guna4.png","guna5.png"]
+tonguelist = ["tongue1.png","tongue2.png","tongue3.png","tongue4.png","tongue5.png","tongue6.png"] 
+rocklist = ["rock.png","rock2.png","rock3.png","rock4.png","rock5.png","rock6.png","rock7.png","rock8.png","rock9.png"]
+flowerlist = ["flower1.png","flower2.png","flower3.png","flower4.png","flower5.png"]
+centipedelist = ["centipede.png","centipede2.png"] 
+
 GameOver = True
 GameOverSprite = 0 # created in EndGame()
 
@@ -36,15 +43,10 @@ GameOverSprite = 0 # created in EndGame()
 # TODO 
 # Comment code for use in Python notes
 # reduce/simplify code while looking for bugs
-# explode centipede part when hit use sparkafter
-# explosion at bottom when centipede reaches bottom of window
-# explosion if ship is hit by centipede
+# bigger explosion, say 40by40 
 # test each level. From level 10 onwards a centipede starts at row 19
 # level intermission screen
 # add sound effects
-# add bombs
-#    create with XX or X    or XXX  etc
-#                      X
 # centipedes need different colors, determined by length of centipede, use a list to choose length, colour
 #                      
 # ADD to Game Over screen: 
@@ -61,7 +63,7 @@ GameOverSprite = 0 # created in EndGame()
 
 # put Grid codes HERE:
 # blank (empty space) = 0
-# boulders = 1,2,3,4,5,6,7,8,9
+# rocks = 1,2,3,4,5,6,7,8,9 even numbers only are used
 # ship = NOT ASSIGNED
 # centipede = 20 
 # Flower = 100-103
@@ -100,10 +102,10 @@ highscore = load_high_score()
 
 
 def putrock(canvas,x,y):
-    putblockAni(canvas,x=x,y=y,fimages=["rock.png","rock2.png","rock3.png","rock4.png","rock5.png","rock6.png","rock7.png","rock8.png","rock9.png"],gridtype=2, objecttype = "rock")
+    putblockAni(canvas,x=x,y=y,fimages=rocklist,gridtype=2, objecttype = "rock")
 
 def putflower(canvas,x,y):
-    putblockAni(canvas,x=x,y=y,fimages=["flower1.png","flower2.png","flower3.png","flower4.png","flower5.png"],gridtype=101, objecttype = "flower")
+    putblockAni(canvas,x=x,y=y,fimages=flowerlist,gridtype=101, objecttype = "flower")
 
 
 def createplayfield():
@@ -136,7 +138,7 @@ def KillShip():
     x = ship.xblock
     y = ship.yblock
     ship.undraw()
-    spark = SparkAfterobj(mainwin, canvas1, fimages=["guna1.png","guna2.png","guna3.png","guna4.png","guna5.png"],xblock=x,yblock=y,dx=0,dy=0,timealive = 1000)
+    spark = SparkAfterobj(mainwin, canvas1, fimages=gundielist,xblock=x,yblock=y,dx=0,dy=0,timealive = 1000)
     ship.xblock = 0 # to stop multiple kills by centipede!
     ship.yblock = 0
     mainwin.after(1000,EndGame) 
@@ -153,8 +155,8 @@ def killcentipedeoverlap():
       y = c.yblock
       removeblock(c)
       centipede.remove(c)
-      spark = SparkAfterobj(mainwin, canvas1, fimages=["explosion1.png","explosion2.png","explosion3.png"],xblock=x,yblock=y,dx=0,dy=0,timealive = 1000)
-      print("centipede collision!! ", len(centipede))
+      spark = SparkAfterobj(mainwin, canvas1, fimages=explosionlist,xblock=x,yblock=y,dx=0,dy=0,timealive = 1000)
+      #print("centipede collision!! ", len(centipede))
       #print("centipede length = ", len(centipede))
 
 def movebody():
@@ -175,6 +177,7 @@ def movebody():
              myblock.changeimagenum(myblock.gridtype-101+1)
              myblock.gridtype = changegrid(myblock,1)
              if myblock.gridtype > 105:
+                 spark = SparkAfterobj(mainwin, canvas1, fimages=explosionlist,xblock=myblock.xblock,yblock=myblock.yblock,dx=0,dy=0,timealive = 1000)
                  if ship.xblock != 0: # avoid mulitple kills
                      KillShip()
              blockerasegoto(cbody,1,10) # hit bottom, so move up
@@ -243,7 +246,7 @@ def bullettimer():
               #print("Centipede parts left = ", len(centipede))
               removeblocknext(bullet) # this will remove centipede part from playfield
               putrock(canvas1,bullet.xblock+bullet.dx,bullet.yblock+bullet.dy)
-              spark = SparkAfterobj(mainwin, canvas1, fimages=["explosion3.png","explosion2.png","explosion1.png"],xblock=x,yblock=y,dx=0,dy=0,timealive = 1000)
+              spark = SparkAfterobj(mainwin, canvas1, fimages=explosionlist,xblock=x,yblock=y,dx=0,dy=0,timealive = 1000)
               addtoscore(10*level) 
          removeblock(bullet)        
          bullets.remove(bullet)
@@ -270,7 +273,7 @@ createplayfield()
 centipede = [] 
 
 def putcentipart(x,y,dx,dy):
-    centipede.append(putblockeraseAni(mainwin, canvas = canvas1,x=x,y=y,fimages=["centipede.png","centipede2.png"],dx=dx,dy=dy,gridtype=20,delay = 300, objecttype = "centipede"))
+    centipede.append(putblockeraseAni(mainwin, canvas = canvas1,x=x,y=y,fimages=centipedelist,dx=dx,dy=dy,gridtype=20,delay = 300, objecttype = "centipede"))
 
 
 def createcentipede():
@@ -314,7 +317,7 @@ def mykey(event):
         ship.dx = 0
     elif key == "space":
         if ship.canfire:
-           spark = SparkAfterobj(mainwin, canvas1, fimages=["tongue1.png","tongue2.png","tongue3.png","tongue4.png","tongue5.png","tongue6.png",],xblock=ship.xblock,yblock=ship.yblock,dx=0,dy=-31,timealive = 100)
+           spark = SparkAfterobj(mainwin, canvas1, fimages=tonguelist,xblock=ship.xblock,yblock=ship.yblock,dx=0,dy=-31,timealive = 100)
            blockabove =  getblock(ship.xblock,ship.yblock-1)
            if blockabove == -1:
              bullet = putblock(canvas1,ship.xblock,ship.yblock-1,"bullet.png",dx=0,dy=-1,gridtype=30,objecttype = "bullet")
@@ -333,7 +336,7 @@ def mykey(event):
                 removeblock(blockabove) # this will remove centipede part from playfield
                 centipede.remove(blockabove)
                 putrock(canvas1,blockabove.xblock,blockabove.yblock)
-                spark = SparkAfterobj(mainwin, canvas1, fimages=["explosion3.png","explosion2.png","explosion1.png"],xblock=x,yblock=y,dx=0,dy=0,timealive = 1000)
+                spark = SparkAfterobj(mainwin, canvas1, fimages=explosionlist,xblock=x,yblock=y,dx=0,dy=0,timealive = 1000)
                 addtoscore(10)
            ship.canfire = False;
            mainwin.after(300,reload)
