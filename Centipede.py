@@ -17,14 +17,14 @@ sys.path.insert(0, "/home/deck/Documents")
 import LEDlib
 from GridLib import *
 
-LEVELSTART = 10
-CLENGTHSTART = 10
+LEVELSTART = 1
+CLENGTHSTART = 6
 
 score = 0
 level = LEVELSTART
 centipedelength = CLENGTHSTART
 
-explosionlist = ["explosion3.png","explosion2.png","explosion1.png"]
+explosionlist = ["explosionBIG1.png","explosionBIG2.png","explosionBIG3.png","explosionBIG4.png","explosionBIG5.png","explosionBIG6.png","explosionBIG7.png"]
 gundielist = ["guna1.png","guna2.png","guna3.png","guna4.png","guna5.png"]
 tonguelist = ["tongue1.png","tongue2.png","tongue3.png","tongue4.png","tongue5.png","tongue6.png"] 
 rocklist = ["rock.png","rock2.png","rock3.png","rock4.png","rock5.png","rock6.png","rock7.png","rock8.png","rock9.png"]
@@ -41,10 +41,10 @@ GameOverSprite = 0 # created in EndGame()
 # HACK 
 # XXX draws attention to potential buggy code
 # TODO 
+# slowly remove grid, not needed/complicates code
 # Comment code for use in Python notes
 # reduce/simplify code while looking for bugs
 # bigger explosion, say 40by40 
-# test each level. From level 10 onwards a centipede starts at row 19
 # level intermission screen
 # add sound effects
 # centipedes need different colors, determined by length of centipede, use a list to choose length, colour
@@ -95,17 +95,16 @@ def load_high_score(filename="highscore.txt"):
 def on_close():
     save_high_score(highscore)  # Save score before exiting
     mainwin.destroy()  # Close the window
- 
 mainwin.protocol("WM_DELETE_WINDOW", on_close)  # Bind closing action
 
 highscore = load_high_score()
 
 
 def putrock(canvas,x,y):
-    putblockAni(canvas,x=x,y=y,fimages=rocklist,gridtype=2, objecttype = "rock")
+    putblockAni(canvas,x=x,y=y,fimages=rocklist,gridtype=2, typestring = "rock")
 
 def putflower(canvas,x,y):
-    putblockAni(canvas,x=x,y=y,fimages=flowerlist,gridtype=101, objecttype = "flower")
+    putblockAni(canvas,x=x,y=y,fimages=flowerlist,gridtype=101, typestring = "flower")
 
 
 def createplayfield():
@@ -130,7 +129,7 @@ def clearplayfield():
 
 def EndGame():
     global GameOverSprite, GameOver, level
-    GameOverSprite = putblockerase(canvas1,18,10,"GameOver.png",dx=0,dy=0,objecttype = "Title Screen")
+    GameOverSprite = putblockerase(canvas1,18,10,"GameOver.png",dx=0,dy=0,typestring = "Title Screen")
     GameOver = True
     save_high_score(highscore)
 
@@ -161,13 +160,11 @@ def killcentipedeoverlap():
 
 def movebody():
     global level, centipedelength
-    killcentipedeoverlap()
     if len(centipede) == 0:
                  level = level + 1
-                 centipedelength = 6+level
-                 if centipedelength > 11: centipedelength = 11
                  addtoscore(0) # to show updated level
                  createcentipede()
+    killcentipedeoverlap()
     for cbody in centipede:
       setgridobj(cbody,0)
       myblock = getblocknext(cbody)
@@ -225,40 +222,46 @@ def centipedetimer():
     movebody()
     if not GameOver: mainwin.after(300,centipedetimer)
 
+def hitrock(rock):
+    if rock.currentimageindex == 8 : # last bit of rock, so destroy
+        removeblock(rock)
+    else:
+        rock.changeimagenum(rock.currentimageindex+2)
+    addtoscore(1)
+
+def hitcentipede(c,nx,ny):
+    centipede.remove(c)
+    removeblock(c) # this will remove centipede part from playfield and grid
+    putrock(canvas1,nx,ny)
+    spark = SparkAfterobj(mainwin, canvas1, fimages=explosionlist,xblock=nx,yblock=ny,dx=0,dy=0,timealive = 1000)
+    addtoscore(10*level) 
+
 def bullettimer():
     global level, centipedelength
     if len(bullets) == 0: return
     for bullet in bullets.copy():
-      if (getgridnext(bullet) == 0):
+      nx = bullet.xblock+bullet.dx
+      ny = bullet.yblock+bullet.dy
+      nextblock = getblock(nx,ny)  # block above bullet at (nx,ny)
+      if nextblock  == -1:   # nothing above bullet
          blockmove(bullet)
       else:
-         if getgridnext(bullet) in [1,2,3,4,5,6,7,8,9]  and (bullet.yblock > 4): # hit boulder
-                rock = getblocknext(bullet)
-                rock.changeimagenum(getgridnext(bullet)+2)
-                if changegridnext(bullet, +2) == 8:
-                   removeblocknext(bullet) 
-                addtoscore(1)
-         if getgridnext(bullet) == 20: # hit centipede
-              c = getblocknext(bullet)
-              x = c.xblock
-              y = c.yblock
-              centipede.remove(c)
-              #print("Centipede parts left = ", len(centipede))
-              removeblocknext(bullet) # this will remove centipede part from playfield
-              putrock(canvas1,bullet.xblock+bullet.dx,bullet.yblock+bullet.dy)
-              spark = SparkAfterobj(mainwin, canvas1, fimages=explosionlist,xblock=x,yblock=y,dx=0,dy=0,timealive = 1000)
-              addtoscore(10*level) 
+         if nextblock.typestring == "rock" and (bullet.yblock > 4): # hit rock
+            hitrock(nextblock)             
+         if nextblock.typestring == "centipede": # hit centipede
+            hitcentipede(nextblock,nx,ny)
          removeblock(bullet)        
          bullets.remove(bullet)
     if not GameOver: mainwin.after(30,bullettimer)  
 
 def shiptimer():
-    if getgridnext(ship) == 20: # centipede
+    nextblock = getblock(ship.xblock+ship.dx, ship.yblock+ship.dy)
+    if nextblock == -1: # empty space
+        ship.move()
+    elif nextblock.typestring == "centipede":
          ship.move()
          print("kill ship in shiptimer")
-         KillShip()
-    elif getgridnext(ship) == 0:
-         ship.move()         
+         KillShip()        
     ship.dx = 0
     ship.dy = 0
     if not GameOver: mainwin.after(150,shiptimer)  
@@ -273,18 +276,26 @@ createplayfield()
 centipede = [] 
 
 def putcentipart(x,y,dx,dy):
-    centipede.append(putblockeraseAni(mainwin, canvas = canvas1,x=x,y=y,fimages=centipedelist,dx=dx,dy=dy,gridtype=20,delay = 300, objecttype = "centipede"))
+    centipede.append(putblockeraseAni(mainwin, canvas = canvas1,x=x,y=y,fimages=centipedelist,dx=dx,dy=dy,gridtype=20,delay = 300, typestring = "centipede"))
 
 
 def createcentipede():
+    centipedelength = 6+level
+    if centipedelength > 11: centipedelength = 11
     for i in range(centipedelength,0,-1): # count backwards
-        putcentipart(i,20,dx=1,dy=0)
+        putcentipart(i,4,dx=1,dy=0)
         if level >= 3:
            putcentipart(i+25,4,dx=1,dy=0)
+        if level >= 5:
+           putcentipart(i,6,dx=1,dy=0)
         if level >= 6:
-           putcentipart(i,5,dx=1,dy=0)
+           putcentipart(i+25,6,dx=1,dy=0)
+        if level >= 7:
+           putcentipart(i,8,dx=1,dy=0)
         if level >= 8:
-           putcentipart(i+25,5,dx=1,dy=0)
+           putcentipart(i+25,8,dx=1,dy=0)
+        if level >= 9:
+           putcentipart(i,20,dx=1,dy=0)
 
 createcentipede()
 
@@ -292,7 +303,7 @@ bullets = []
 ship = 0
 def createship():
     global ship
-    ship = putblock(canvas1,20,20,"gun3.png",dx=0,dy=0,objecttype = "ship") # adds ship to playfield
+    ship = putblock(canvas1,20,20,"gun3.png",dx=0,dy=0,typestring = "ship") # adds ship to playfield
     ship.canfire = True
 
 createship()
@@ -320,24 +331,14 @@ def mykey(event):
            spark = SparkAfterobj(mainwin, canvas1, fimages=tonguelist,xblock=ship.xblock,yblock=ship.yblock,dx=0,dy=-31,timealive = 100)
            blockabove =  getblock(ship.xblock,ship.yblock-1)
            if blockabove == -1:
-             bullet = putblock(canvas1,ship.xblock,ship.yblock-1,"bullet.png",dx=0,dy=-1,gridtype=30,objecttype = "bullet")
+             bullet = putblock(canvas1,ship.xblock,ship.yblock-1,"bullet.png",dx=0,dy=-1,gridtype=30,typestring = "bullet")
              bullets.append(bullet)
              mainwin.after(30,bullettimer) 
            else:
-             if getgridobj(blockabove) in [1,2,3,4,5,6,7,8,9] and (blockabove.yblock > 4): # boulder
-                rock = getblocknext(blockabove)
-                rock.changeimagenum(getgridnext(blockabove)+2)
-                if changegridnext(blockabove, +2) == 8:
-                   removeblocknext(blockabove) 
-                addtoscore(1)
-             if getgridobj(blockabove) == 20: # hit centipede
-                x = blockabove.xblock
-                y = blockabove.yblock
-                removeblock(blockabove) # this will remove centipede part from playfield
-                centipede.remove(blockabove)
-                putrock(canvas1,blockabove.xblock,blockabove.yblock)
-                spark = SparkAfterobj(mainwin, canvas1, fimages=explosionlist,xblock=x,yblock=y,dx=0,dy=0,timealive = 1000)
-                addtoscore(10)
+             if blockabove.typestring == "rock" and (blockabove.yblock > 3): # hit rock
+                hitrock(blockabove)
+             if blockabove.typestring == "centipede": # hit centipede
+                hitcentipede(blockabove,blockabove.xblock,blockabove.yblock)
            ship.canfire = False;
            mainwin.after(300,reload)
           
