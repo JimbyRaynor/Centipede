@@ -3,8 +3,11 @@ from tkinter import *
 import random
 import os
 import sys
-import time
 
+
+# for loading files (.png), set current directory = location of this python script (needed for Linux)
+current_script_directory = os.path.dirname(os.path.abspath(__file__))
+os.chdir(current_script_directory)
 
 # double size of graphics 16by16 to 32by32
 
@@ -12,7 +15,6 @@ import time
 # to start endgame 1 sec AFTER the explosion is interpreted
 
 # to import LEDlib and GridLib in Documents
-# NOT NEEDED: two_levels_up = os.path.abspath(os.path.join('..', '..'))
 sys.path.insert(0, "/home/deck/Documents")
 import LEDlib
 from GridLib import *
@@ -41,13 +43,10 @@ GameOverSprite = 0 # created in EndGame()
 # HACK 
 # XXX draws attention to potential buggy code
 # TODO 
-# slowly remove grid, not needed/complicates code
 # Comment code for use in Python notes
 # reduce/simplify code while looking for bugs
-# bigger explosion, say 40by40 
 # level intermission screen
-# add sound effects
-# centipedes need different colors, determined by length of centipede, use a list to choose length, colour
+# centipedes need different colors, determined by length of centipede
 #                      
 # ADD to Game Over screen: 
 #   click in this window to play
@@ -55,30 +54,14 @@ GameOverSprite = 0 # created in EndGame()
 #   shoot -  space bar
 #   points : boulder 1
 #            centipede 10*level (look at Defender/Pacman screens)
+# stop centipede from eating flowers
 
 # make fancy attract screen, maybe not. Do this last
-# make unit for saving hiscore
 
-
-
-# put Grid codes HERE:
-# blank (empty space) = 0
-# rocks = 1,2,3,4,5,6,7,8,9 even numbers only are used
-# ship = NOT ASSIGNED
-# centipede = 20 
-# Flower = 100-103
-
-# for loading files (.png), set current directory = location of this python script (needed for Linux)
-current_script_directory = os.path.dirname(os.path.abspath(__file__))
-os.chdir(current_script_directory)
-
-        
 mainwin = Tk(className = " ")
 mainwin.geometry("1216x800")
 canvas1 = Canvas(mainwin,width = 1216, height = 800, bg = "black")
 canvas1.place(x=0,y=0)
-
-
 
 
 def save_high_score(score, filename="highscore.txt"):
@@ -195,7 +178,7 @@ def displayscore():
     LEDlib.Erasepoints(canvas1,LEDscore)
     LEDscore = []
     LEDlib.ShowColourText(canvas1,80+2*LEDlib.charwidth,26,"light green","SCORE", LEDscore)
-    LEDlib.ShowColourScore(canvas1,80,50,"yellow",score, LEDscore)
+    LEDlib.ShowColourScore(canvas1,80,50,"white",score, LEDscore)
     LEDlib.ShowColourText(canvas1,480,36,"light green","CENTIPEDE", LEDscore)
     LEDlib.pixellinedouble(canvas1,x=685,y=51,dx=1,dy=0,n=14,colour= "green", LEDpoints = LEDscore)
     LEDlib.pixellinetriple(canvas1,x=727,y=51,dx=0,dy=1,n=9,colour=  "green", LEDpoints = LEDscore)
@@ -203,7 +186,7 @@ def displayscore():
     LEDlib.pixellinetriple(canvas1,x=439,y=75,dx=0,dy=-1,n=21,colour="green", LEDpoints = LEDscore)
     LEDlib.pixellinetriple(canvas1,x=439,y=15,dx=1,dy=0,n=98,colour= "green", LEDpoints = LEDscore)
     LEDlib.ShowColourText(canvas1,1020,26,"light green","HISCORE", LEDscore)
-    LEDlib.ShowColourScore(canvas1,1020-1*LEDlib.charwidth,50,"yellow",highscore, LEDscore)
+    LEDlib.ShowColourScore(canvas1,1020-1*LEDlib.charwidth,50,"white",highscore, LEDscore)
     LEDlib.ShowColourText(canvas1,810,26,"light blue","LEVEL", LEDscore)
     LEDlib.ShowColourScore(canvas1,810+1.5*LEDlib.charwidth,50,"light blue",level, LEDscore, numzeros = 2)
 
@@ -278,8 +261,7 @@ def putcentipart(x,y,dx,dy):
 
 
 def createcentipede():
-    centipedelength = 6+level
-    if centipedelength > 11: centipedelength = 11
+    global centipedelength
     for i in range(centipedelength,0,-1): # count backwards
         putcentipart(i,4,dx=1,dy=0)
         if level >= 3:
@@ -294,6 +276,10 @@ def createcentipede():
            putcentipart(i+25,8,dx=1,dy=0)
         if level >= 9:
            putcentipart(i,20,dx=1,dy=0)
+    if level >= 9:
+       centipedelength = centipedelength + 1
+       if centipedelength > 11: centipedelength = 11
+
 
 createcentipede()
 
