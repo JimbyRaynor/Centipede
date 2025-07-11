@@ -19,7 +19,7 @@ sys.path.insert(0, "/home/deck/Documents")
 import LEDlib
 from GridLib import *
 
-LEVELSTART = 10
+LEVELSTART = 1
 CLENGTHSTART = 6
 
 score = 0
@@ -91,6 +91,7 @@ def putflower(canvas,x,y):
 
 
 def createplayfield():
+    random.seed(1) # same random numbers each time
     for i in range(38):
         putrock(canvas1,x=i,y=0+3)
         if i > 0 and i < 37:
