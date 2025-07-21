@@ -44,8 +44,6 @@ class Spriteobj:
             playfield.remove(self)
         else:
             print("undraw error, cannot remove, not in playfield: ", self.typestring, self.xblock, self.yblock)
-            if self in centipede:
-                print("in centipede list")
     def changeimagenum(self,n):
         if n < len(self.images):
            self.currentimageindex = n
@@ -85,8 +83,6 @@ class SpriteobjAni:
             playfield.remove(self)
         else:
             print("undraw error, cannot remove, not in playfield: ", self.typestring, self.xblock, self.yblock)
-            if self in centipede:
-                print("in centipede list")
     def changeimage(self):
         self.canvas.itemconfigure(self.sprite,image=self.images[self.currentimageindex])
         self.currentimageindex = self.currentimageindex + 1
@@ -161,9 +157,7 @@ def putblockAni(canvas,x,y,fimages=[],dx=0,dy=0, typestring = "unknown"):
          return -1 
     
 def blockmove(gameobj):
-    nx = gameobj.xblock+gameobj.dx
-    ny = gameobj.yblock+gameobj.dy
-    nextblock = getblock(nx,ny)
+    nextblock = getblocknext(gameobj)
     if nextblock == -1:  # only one object at each location
          gameobj.move()
          return 0
